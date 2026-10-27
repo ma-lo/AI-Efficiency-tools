@@ -1,0 +1,1926 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E2E-ATW 设计实现说明 · V2.2 全模块</title>
+<style>
+:root{
+  --bg:#070b12; --bg2:#0b111c; --panel:rgba(19,27,43,.72); --panel2:rgba(24,34,56,.72);
+  --line:#22304e; --line2:#2f4270;
+  --txt:#e2eaf8; --dim:#93a2c2; --mut:#5c6a8c;
+  --cyan:#3ee6d6; --blue:#5b9dff; --violet:#a78bff; --amber:#ffc25e;
+  --green:#5be49b; --red:#ff7070; --pink:#ff8ac2;
+  --mono:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei','Segoe UI',sans-serif;line-height:1.75;overflow-x:hidden}
+::selection{background:rgba(62,230,214,.3)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--line2);border-radius:5px}
+
+/* 背景 */
+.bg-grid{position:fixed;inset:0;z-index:-3;background-image:linear-gradient(rgba(91,157,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(91,157,255,.045) 1px,transparent 1px);background-size:46px 46px;mask-image:radial-gradient(ellipse 90% 80% at 50% 20%,#000 40%,transparent 100%)}
+.orb{position:fixed;border-radius:50%;filter:blur(90px);z-index:-2;pointer-events:none;opacity:.5;animation:orbFloat 16s ease-in-out infinite alternate}
+.orb.o1{width:560px;height:560px;left:-160px;top:-120px;background:radial-gradient(circle,rgba(62,230,214,.16),transparent 65%)}
+.orb.o2{width:520px;height:520px;right:-180px;top:32%;background:radial-gradient(circle,rgba(167,139,255,.14),transparent 65%);animation-delay:-6s}
+.orb.o3{width:480px;height:480px;left:28%;bottom:-200px;background:radial-gradient(circle,rgba(91,157,255,.13),transparent 65%);animation-delay:-11s}
+@keyframes orbFloat{from{transform:translate(0,0) scale(1)}to{transform:translate(50px,40px) scale(1.12)}}
+#cursorGlow{position:fixed;width:520px;height:520px;border-radius:50%;pointer-events:none;z-index:-1;background:radial-gradient(circle,rgba(62,230,214,.055),transparent 60%);transform:translate(-50%,-50%);transition:opacity .3s}
+
+/* 进度条 */
+#progress{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,var(--cyan),var(--blue),var(--violet));z-index:100;box-shadow:0 0 12px rgba(62,230,214,.6)}
+
+/* 选中与滚动条精化 */
+::selection{background:rgba(62,230,214,.35);color:#fff;text-shadow:0 0 8px rgba(62,230,214,.6)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--line2),var(--line));border-radius:5px;border:2px solid var(--bg2)}
+::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,var(--cyan),var(--blue))}
+
+.layout{display:flex;max-width:1560px;margin:0 auto}
+
+/* ============ 侧边导航 ============ */
+.sidenav{width:262px;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto;padding:26px 0 60px;border-right:1px solid var(--line);background:rgba(7,11,18,.82);backdrop-filter:blur(10px);scrollbar-width:thin}
+.sidenav .logo{padding:0 22px 18px;border-bottom:1px solid var(--line)}
+.sidenav .logo .t1{font-size:18px;font-weight:900;letter-spacing:1px;background:linear-gradient(90deg,var(--cyan),var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sidenav .logo .t2{font-size:10.5px;color:var(--mut);margin-top:4px;font-family:var(--mono)}
+.nav-part{padding:15px 22px 6px;font-size:10.5px;letter-spacing:2.5px;color:var(--mut)}
+.sidenav a{display:flex;align-items:center;gap:8px;padding:6px 22px;font-size:12.5px;color:var(--dim);text-decoration:none;border-left:2px solid transparent;transition:all .18s;line-height:1.5}
+.sidenav a .ndot{width:5px;height:5px;border-radius:50%;background:var(--line2);transition:all .18s;flex-shrink:0}
+.sidenav a:hover{color:var(--txt);background:rgba(91,157,255,.06)}
+.sidenav a.active{color:var(--cyan);border-left-color:var(--cyan);background:linear-gradient(90deg,rgba(62,230,214,.1),transparent)}
+.sidenav a.active .ndot{background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+
+.main{flex:1;min-width:0;padding:0 56px 120px}
+@media(max-width:1080px){.sidenav{display:none}.main{padding:0 20px 80px}}
+
+section{padding-top:80px;position:relative}
+.ghost-num{position:absolute;top:38px;right:0;font-family:var(--mono);font-size:120px;font-weight:900;color:transparent;-webkit-text-stroke:1px rgba(91,157,255,.13);line-height:1;pointer-events:none;user-select:none}
+.sec-kicker{font-family:var(--mono);font-size:12px;color:var(--cyan);letter-spacing:3px;text-transform:uppercase;display:flex;align-items:center;gap:10px}
+.sec-kicker::before{content:'';width:30px;height:1px;background:linear-gradient(90deg,var(--cyan),transparent)}
+h2.sec-title{font-size:clamp(24px,3vw,32px);font-weight:900;margin:10px 0 8px;letter-spacing:.5px}
+.sec-sub{color:var(--dim);font-size:14.5px;max-width:840px;margin-bottom:30px}
+
+/* ============ Hero ============ */
+.hero{min-height:92vh;display:flex;flex-direction:column;justify-content:center;padding-top:60px;position:relative}
+#particles{position:absolute;inset:0;z-index:-1}
+.hero .badge{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;color:var(--cyan);border:1px solid rgba(62,230,214,.35);background:rgba(62,230,214,.07);border-radius:999px;padding:6px 18px;width:max-content;margin-bottom:26px;backdrop-filter:blur(4px)}
+.hero .badge .dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(62,230,214,.5)}50%{opacity:.5;box-shadow:0 0 0 7px rgba(62,230,214,0)}}
+.hero h1{font-size:clamp(40px,5.6vw,72px);font-weight:900;line-height:1.14;letter-spacing:1px}
+.hero h1 .grad{background:linear-gradient(92deg,#3ee6d6,#5b9dff 50%,#a78bff);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:gradShift 6s ease infinite}
+@keyframes gradShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.hero .desc{margin-top:22px;font-size:16.5px;color:var(--dim);max-width:780px}
+.hero .meta{margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--mut);min-height:20px}
+.hero .meta .caret{display:inline-block;width:8px;height:14px;background:var(--cyan);vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-top:44px;max-width:940px}
+.stat-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px 18px;position:relative;overflow:hidden;transition:transform .3s,border-color .3s,box-shadow .3s;backdrop-filter:blur(8px)}
+.stat-card:hover{transform:translateY(-6px) scale(1.02);border-color:rgba(62,230,214,.5);box-shadow:0 16px 40px rgba(0,0,0,.45),0 0 30px rgba(62,230,214,.08)}
+.stat-card .num{font-size:36px;font-weight:900;font-family:var(--mono);background:linear-gradient(180deg,#fff,var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 30px rgba(62,230,214,.3)}
+.stat-card .lbl{font-size:12px;color:var(--dim);margin-top:2px}
+.stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--cyan),transparent 70%)}
+.stat-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 80% 20%,rgba(62,230,214,.06),transparent 60%);pointer-events:none}
+.principles{display:flex;flex-wrap:wrap;gap:10px;margin-top:36px}
+.chip{font-size:12.5px;padding:8px 16px;border-radius:999px;border:1px solid var(--line);background:rgba(19,27,43,.6);color:var(--dim);transition:all .2s}
+.chip:hover{border-color:rgba(62,230,214,.4);color:var(--txt);transform:translateY(-2px)}
+.chip b{color:var(--cyan)}
+.scroll-hint{margin-top:54px;color:var(--mut);font-size:12px;font-family:var(--mono);animation:bob 2.4s infinite ease-in-out;width:max-content}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(8px)}}
+
+/* ============ 通用 ============ */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:28px;transition:border-color .25s,box-shadow .25s;backdrop-filter:blur(8px)}
+.card:hover{border-color:rgba(91,157,255,.4);box-shadow:0 14px 40px rgba(0,0,0,.35)}
+.card h3{font-size:18px;font-weight:800;margin-bottom:6px}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin:8px 0}
+th{text-align:left;padding:11px 12px;color:var(--cyan);font-size:11.5px;letter-spacing:1.2px;border-bottom:1px solid var(--line2);white-space:nowrap}
+td{padding:11px 12px;border-bottom:1px solid rgba(34,48,78,.5);color:var(--dim);vertical-align:top}
+tr:hover td{background:rgba(91,157,255,.05);color:var(--txt)}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:6px 8px;backdrop-filter:blur(8px)}
+code{font-family:var(--mono);font-size:.9em;color:var(--amber);background:rgba(255,194,94,.09);padding:1.5px 6px;border-radius:5px}
+pre{background:#0a0f1a;border:1px solid var(--line);border-radius:16px;padding:20px 22px;overflow-x:auto;font-family:var(--mono);font-size:12.8px;line-height:1.7;color:#a9bcd8;margin:14px 0;position:relative;box-shadow:inset 0 1px 0 rgba(255,255,255,.03),0 4px 20px rgba(0,0,0,.3)}
+pre::before{content:'● ● ●';position:absolute;top:8px;left:16px;font-size:9px;color:var(--mut);letter-spacing:3px;opacity:.6}
+pre{padding-top:32px}
+.tag{display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 10px;border-radius:999px;border:1px solid;line-height:1.7}
+.tag.p0{color:var(--red);border-color:rgba(255,112,112,.45);background:rgba(255,112,112,.09)}
+.tag.p1{color:var(--amber);border-color:rgba(255,194,94,.45);background:rgba(255,194,94,.09)}
+.tag.p2{color:var(--blue);border-color:rgba(91,157,255,.45);background:rgba(91,157,255,.09)}
+.tag.p3{color:var(--mut);border-color:var(--line)}
+.tag.gate{color:var(--violet);border-color:rgba(167,139,255,.45);background:rgba(167,139,255,.09)}
+.tag.pass{color:var(--green);border-color:rgba(91,228,155,.45);background:rgba(91,228,155,.09)}
+
+/* ============ 流水线（升级版） ============ */
+.pipe-wrap{border:1px solid var(--line);border-radius:20px;background:linear-gradient(160deg,rgba(19,27,43,.85),rgba(11,17,28,.85));padding:34px 26px 30px;position:relative;overflow:hidden;backdrop-filter:blur(8px)}
+.pipe-wrap::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(62,230,214,.07),transparent 70%);pointer-events:none}
+.pipe-scroll{overflow-x:auto;padding-bottom:8px}
+.pipe-track{display:flex;align-items:stretch;min-width:max-content;position:relative;padding:26px 6px 6px}
+.pnode{display:flex;flex-direction:column;align-items:center;position:relative}
+.pnode .box{width:132px;background:var(--bg2);border:1px solid var(--line2);border-radius:14px;padding:13px 10px;text-align:center;cursor:pointer;transition:all .25s;position:relative}
+.pnode .box:hover{transform:translateY(-4px);border-color:rgba(62,230,214,.55);box-shadow:0 10px 26px rgba(0,0,0,.4)}
+.pnode.on .box{border-color:var(--cyan);background:rgba(62,230,214,.09);box-shadow:0 0 0 1px var(--cyan),0 0 30px rgba(62,230,214,.22);transform:translateY(-4px)}
+.pnode .sid{font-family:var(--mono);font-size:9.5px;color:var(--mut);letter-spacing:1px}
+.pnode .sname{font-weight:800;font-size:13.5px;margin:3px 0 2px}
+.pnode .stask{font-family:var(--mono);font-size:10px;color:var(--blue);word-break:break-all}
+.pnode.is-gate .box::after{content:'GATE';position:absolute;top:-9px;right:-8px;font-size:9px;font-family:var(--mono);font-weight:800;background:linear-gradient(90deg,var(--violet),#c9b3ff);color:#0a0e14;border-radius:6px;padding:1.5px 7px;box-shadow:0 0 12px rgba(167,139,255,.5)}
+.pnode.is-gate .box::before{content:'';position:absolute;inset:-4px;border-radius:17px;border:1px dashed rgba(167,139,255,.45);animation:gatePulse 2.6s infinite}
+@keyframes gatePulse{0%,100%{opacity:.35}50%{opacity:1}}
+.plink{width:52px;align-self:center;height:2px;margin:0 2px;position:relative;flex-shrink:0;background:repeating-linear-gradient(90deg,var(--line2) 0 6px,transparent 6px 12px);animation:flowDash 1.1s linear infinite}
+@keyframes flowDash{to{background-position:12px 0}}
+.plink::after{content:'▸';position:absolute;right:-4px;top:-9px;color:var(--cyan);font-size:13px;text-shadow:0 0 8px var(--cyan)}
+.pipe-legend{display:flex;gap:22px;margin-top:18px;font-size:11.5px;color:var(--mut);font-family:var(--mono);flex-wrap:wrap}
+.pipe-legend span{display:flex;align-items:center;gap:7px}
+.lg{width:12px;height:12px;border-radius:4px;border:1px solid var(--line2);background:var(--bg2)}
+.lg.gate{border:1px dashed var(--violet)}
+.stage-detail{margin-top:20px;border:1px solid rgba(62,230,214,.35);border-radius:16px;background:linear-gradient(160deg,rgba(62,230,214,.06),rgba(11,17,28,.6));padding:24px 26px;display:none;position:relative;overflow:hidden}
+.stage-detail::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--cyan),var(--blue))}
+.stage-detail.show{display:block;animation:detailIn .35s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes detailIn{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+
+/* ============ 数据流节点图 ============ */
+.flowmap{display:grid;gap:0;margin:6px 0}
+.frow{display:flex;align-items:center;gap:0;flex-wrap:wrap}
+.fnode{background:var(--bg2);border:1px solid var(--line2);border-radius:12px;padding:10px 18px;font-size:13px;font-weight:700;font-family:var(--mono);transition:all .2s;white-space:nowrap}
+.fnode:hover{border-color:var(--cyan);box-shadow:0 0 18px rgba(62,230,214,.18);transform:scale(1.04)}
+.fnode.src{border-color:rgba(91,157,255,.5);color:var(--blue)}
+.fnode.gate{border:1px dashed var(--violet);color:var(--violet)}
+.fnode.out{border-color:rgba(91,228,155,.5);color:var(--green)}
+.farrow{width:44px;height:2px;background:repeating-linear-gradient(90deg,var(--cyan) 0 6px,transparent 6px 12px);animation:flowDash 1s linear infinite;position:relative;flex-shrink:0}
+.farrow::after{content:'▸';position:absolute;right:-5px;top:-9px;color:var(--cyan);font-size:12px}
+.fdown{width:2px;height:26px;margin-left:86px;background:repeating-linear-gradient(180deg,var(--cyan) 0 6px,transparent 6px 12px);animation:flowDashV 1s linear infinite}
+@keyframes flowDashV{to{background-position:0 12px}}
+
+/* ============ 三层分工 ============ */
+.layers{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+.layer{border:1px solid var(--line);border-radius:18px;padding:26px;background:var(--panel);position:relative;overflow:hidden;transition:transform .28s,box-shadow .28s;backdrop-filter:blur(8px)}
+.layer:hover{transform:translateY(-5px);box-shadow:0 16px 40px rgba(0,0,0,.4)}
+.layer::before{content:'';position:absolute;top:0;left:0;bottom:0;width:4px}
+.layer.l1::before{background:linear-gradient(180deg,var(--blue),transparent)}
+.layer.l2::before{background:linear-gradient(180deg,var(--violet),transparent)}
+.layer.l3::before{background:linear-gradient(180deg,var(--red),transparent)}
+.layer .lico{font-size:24px;margin-bottom:10px}
+.layer .lt{font-size:16px;font-weight:800;margin-bottom:8px}
+.layer p{font-size:13.5px;color:var(--dim)}
+.layer .lk{font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:12px;display:block;border-top:1px dashed var(--line);padding-top:10px}
+
+/* ============ 模块卡片 ============ */
+.mod-tabs{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:24px}
+.mod-tab{font-family:var(--mono);font-size:12.5px;padding:9px 20px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--dim);cursor:pointer;transition:all .2s}
+.mod-tab:hover{color:var(--txt);transform:translateY(-2px)}
+.mod-tab.on{border-color:var(--tab-c,var(--cyan));color:var(--tab-c,var(--cyan));font-weight:700;background:color-mix(in srgb,var(--tab-c,var(--cyan)) 12%,transparent);box-shadow:0 0 18px color-mix(in srgb,var(--tab-c,var(--cyan)) 20%,transparent)}
+.task-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px}
+.task{border:1px solid var(--line);border-radius:16px;padding:22px;background:var(--panel);transition:transform .25s,border-color .25s,box-shadow .25s;display:flex;flex-direction:column;gap:9px;position:relative;overflow:hidden;animation:taskIn .4s ease both;backdrop-filter:blur(8px)}
+@keyframes taskIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.task::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--mod-c,var(--cyan)),transparent 65%);opacity:.85}
+.task:hover{transform:translateY(-5px);border-color:color-mix(in srgb,var(--mod-c,var(--cyan)) 55%,transparent);box-shadow:0 14px 36px rgba(0,0,0,.42)}
+.task .thead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.task .tid{font-family:var(--mono);font-weight:800;font-size:13px;color:var(--mod-c,var(--cyan))}
+.task .tname{font-size:14.5px;font-weight:700}
+.task .tdesc{font-size:12.8px;color:var(--dim)}
+.task .tmeta{margin-top:auto;font-size:11px;color:var(--mut);font-family:var(--mono);border-top:1px dashed var(--line);padding-top:9px}
+.task.modpos{justify-content:center;border-style:dashed;border-color:color-mix(in srgb,var(--mod-c,var(--cyan)) 40%,transparent)}
+
+/* ============ 闸门 ============ */
+.gate-head{display:flex;align-items:center;gap:26px;flex-wrap:wrap;margin-bottom:24px}
+.ring{position:relative;width:110px;height:110px;flex-shrink:0}
+.ring svg{transform:rotate(-90deg)}
+.ring .rc-bg{fill:none;stroke:var(--line);stroke-width:8}
+.ring .rc-fg{fill:none;stroke:url(#ringGrad);stroke-width:8;stroke-linecap:round;stroke-dasharray:314;stroke-dashoffset:314;transition:stroke-dashoffset 1.4s cubic-bezier(.2,.8,.3,1)}
+.ring .rtxt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--mono)}
+.ring .rtxt b{font-size:22px;color:var(--cyan)}
+.ring .rtxt span{font-size:10px;color:var(--mut)}
+.gate-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:13px}
+.gate{border:1px solid var(--line);border-radius:14px;padding:17px;background:var(--panel);transition:all .22s;position:relative;overflow:hidden}
+.gate::after{content:'';position:absolute;top:0;left:-80%;width:60%;height:100%;background:linear-gradient(100deg,transparent,rgba(167,139,255,.09),transparent);transition:left .5s}
+.gate:hover{border-color:rgba(167,139,255,.55);transform:translateY(-4px)}
+.gate:hover::after{left:110%}
+.gate .gid{font-family:var(--mono);font-weight:900;font-size:15px;background:linear-gradient(90deg,var(--violet),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent}
+.gate .gname{font-size:13px;font-weight:700;margin:4px 0}
+.gate .gdesc{font-size:11.8px;color:var(--dim);line-height:1.55}
+.gate .gparam{margin-top:9px;font-family:var(--mono);font-size:10.5px;color:var(--mut)}
+
+/* ============ 攻击矩阵 ============ */
+.attack-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:15px}
+.attack{border:1px solid rgba(255,112,112,.28);border-radius:16px;padding:22px;background:linear-gradient(165deg,rgba(255,112,112,.07),var(--panel) 55%);position:relative;overflow:hidden;transition:transform .25s,box-shadow .25s}
+.attack:hover{transform:translateY(-5px);box-shadow:0 14px 36px rgba(255,112,112,.1)}
+.attack .aid{font-family:var(--mono);font-size:26px;font-weight:900;color:var(--red);text-shadow:0 0 18px rgba(255,112,112,.5)}
+.attack .aname{font-weight:800;margin:2px 0 8px}
+.attack .adesc{font-size:12.5px;color:var(--dim)}
+.attack .acatch{margin-top:13px;font-size:11.8px;color:var(--green);border-top:1px dashed var(--line);padding-top:9px}
+.attack .scan{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(91,228,155,.7),transparent);top:-10%;opacity:0}
+.attack:hover .scan{animation:scanline 1.1s ease}
+@keyframes scanline{0%{top:-4%;opacity:1}100%{top:104%;opacity:0}}
+
+/* ============ 报告链接卡 ============ */
+.rlinks{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.rlink{display:block;border:1px solid var(--line);border-radius:14px;padding:16px 18px;background:var(--panel);text-decoration:none;transition:all .25s;position:relative;overflow:hidden}
+.rlink::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--cyan),transparent 70%)}
+.rlink:hover{transform:translateY(-4px);border-color:rgba(62,230,214,.5);box-shadow:0 12px 32px rgba(0,0,0,.38)}
+.rlink .rt{font-size:13.5px;font-weight:700;color:var(--txt)}
+.rlink .rm{font-size:11px;color:var(--mut);font-family:var(--mono);margin-top:6px;display:block;word-break:break-all}
+.rlink .rc{font-size:11.5px;color:var(--cyan);margin-top:7px;font-family:var(--mono)}
+
+/* ============ 架构 SVG 图例 ============ */
+.arch-svg{width:100%;height:auto;display:block}
+.arch-svg .lane{fill:rgba(19,27,43,.55);stroke:var(--line);stroke-width:1}
+.arch-svg .lane-t{fill:#cfd8e6;font-size:14px;font-weight:700}
+.arch-svg .lane-s{fill:var(--mut);font-size:9px;font-family:var(--mono);letter-spacing:2px}
+.arch-svg .nd rect{transition:filter .2s}
+.arch-svg .nd:hover rect{filter:brightness(1.3)}
+.arch-svg .nd .t1{fill:#e2eaf8;font-size:12.5px;font-weight:700}
+.arch-svg .nd .t2{fill:#5c6a8c;font-size:9px;font-family:var(--mono)}
+.arch-svg .nd.in rect{fill:rgba(91,157,255,.12);stroke:rgba(91,157,255,.55)}
+.arch-svg .nd.pl rect{fill:rgba(62,230,214,.1);stroke:rgba(62,230,214,.5)}
+.arch-svg .nd.gate rect{fill:rgba(167,139,255,.12);stroke:rgba(167,139,255,.65);stroke-dasharray:5 3}
+.arch-svg .nd.out rect{fill:rgba(91,228,155,.1);stroke:rgba(91,228,155,.5)}
+.arch-svg .flow{stroke:rgba(62,230,214,.55);stroke-dasharray:5 7;fill:none;stroke-width:1.4;animation:dashmove 1.4s linear infinite}
+.arch-svg .wire{stroke:rgba(91,157,255,.4);fill:none;stroke-width:1.2}
+.arch-svg .solid{stroke:rgba(62,230,214,.5);fill:none;stroke-width:1.4}
+.arch-svg .gate-flag{fill:#a78bff;font-family:var(--mono);font-size:8.5px;font-weight:700}
+.arch-svg .band-t{fill:#e8eefb;font-size:11.5px;font-weight:700;letter-spacing:2px}
+.arch-svg .band-s{fill:rgba(232,238,251,.55);font-size:8px;font-family:var(--mono)}
+.arch-svg .lg-t{fill:#5c6a8c;font-size:10.5px;font-family:var(--mono)}
+@keyframes dashmove{to{stroke-dashoffset:-24}}
+
+/* ============ 时间线 ============ */
+.timeline{position:relative;padding-left:34px}
+.timeline::before{content:'';position:absolute;left:9px;top:6px;bottom:6px;width:2px;background:linear-gradient(180deg,var(--cyan),var(--blue),var(--violet))}
+.tl-item{position:relative;padding:0 0 28px 14px}
+.tl-item::before{content:'';position:absolute;left:-31px;top:8px;width:13px;height:13px;border-radius:50%;background:var(--bg);border:3px solid var(--cyan);box-shadow:0 0 12px rgba(62,230,214,.5)}
+.tl-item .date{font-family:var(--mono);font-size:12px;color:var(--cyan)}
+.tl-item .evt{font-size:14px;margin-top:2px}
+
+/* ============ 命令块 ============ */
+.cmds{display:grid;gap:10px}
+.cmd{display:flex;gap:14px;align-items:flex-start;background:#0a0f1a;border:1px solid var(--line);border-radius:13px;padding:14px 18px;font-size:13px;transition:border-color .2s,transform .2s}
+.cmd:hover{border-color:rgba(62,230,214,.4);transform:translateX(4px)}
+.cmd .c-label{color:var(--dim);min-width:110px;font-size:12.5px;padding-top:1px;flex-shrink:0}
+.cmd code{background:none;padding:0;color:var(--cyan);font-size:12.5px;word-break:break-all}
+
+#topBtn{position:fixed;right:26px;bottom:26px;width:46px;height:46px;border-radius:50%;border:1px solid var(--line2);background:rgba(24,34,56,.9);color:var(--cyan);font-size:18px;cursor:pointer;opacity:0;pointer-events:none;transition:all .25s;z-index:50;backdrop-filter:blur(6px)}
+#topBtn.show{opacity:1;pointer-events:auto}
+#topBtn:hover{border-color:var(--cyan);box-shadow:0 0 20px rgba(62,230,214,.3);transform:translateY(-3px)}
+#topBtn:active{transform:translateY(-1px) scale(.96)}
+
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.8,.3,1)}
+.reveal.vis{opacity:1;transform:none}
+h4.blk{font-size:15px;font-weight:800;color:var(--cyan);margin:28px 0 12px;display:flex;align-items:center;gap:9px}
+h4.blk::before{content:'▍';color:var(--blue)}
+ul.dot{padding-left:20px;color:var(--dim);font-size:13.8px}
+ul.dot li{margin:5px 0}
+ul.dot b{color:var(--txt)}
+
+/* ============ 业务语言层（V3 新增） ============ */
+.biz-note{display:flex;gap:12px;align-items:flex-start;border:1px solid rgba(255,194,94,.35);background:linear-gradient(120deg,rgba(255,194,94,.08),rgba(255,194,94,.02));border-radius:14px;padding:14px 18px;font-size:13.8px;color:var(--txt);margin:0 0 26px;max-width:900px;transition:box-shadow .3s,border-color .3s}
+.biz-note .bi{flex-shrink:0;font-size:16px;line-height:1.6}
+.biz-note b{color:var(--amber)}
+body.biz-view .biz-note{border-color:var(--amber);box-shadow:0 0 24px rgba(255,194,94,.14)}
+body.biz-view .tech-only{display:none!important}
+body.biz-view pre,body.biz-view .lk,body.biz-view .gparam,body.biz-view .tmeta,body.biz-view .cmds{display:none!important}
+body.biz-view .pipe-legend,body.biz-view .stask{display:none!important}
+#viewToggle,#viewToggleNav{display:inline-flex;align-items:center;gap:0;border:1px solid var(--line2);border-radius:999px;background:var(--panel);padding:3px;cursor:pointer;font-size:12px;font-family:inherit;backdrop-filter:blur(6px)}
+#viewToggle{position:absolute;top:26px;right:0;z-index:5}
+.vt-opt{padding:6px 14px;border-radius:999px;color:var(--mut);transition:all .25s;white-space:nowrap;user-select:none}
+.vt-opt.on{background:linear-gradient(90deg,rgba(62,230,214,.18),rgba(91,157,255,.18));color:var(--cyan);font-weight:700}
+.hero-biz{margin-top:14px;font-size:15px;color:var(--amber);max-width:780px;border-left:3px solid var(--amber);padding-left:14px}
+.nav-search{margin:0 16px 8px;position:relative}
+.nav-search input{width:100%;background:rgba(10,15,26,.9);border:1px solid var(--line);border-radius:10px;padding:7px 12px 7px 30px;color:var(--txt);font-size:12.5px;font-family:inherit;outline:none;transition:border-color .2s}
+.nav-search input:focus{border-color:var(--cyan);box-shadow:0 0 12px rgba(62,230,214,.15)}
+.nav-search .si{position:absolute;left:10px;top:8px;font-size:12px;color:var(--mut);pointer-events:none}
+.nav-search input::placeholder{color:var(--mut)}
+.sidenav a.nav-dim{opacity:.22;filter:grayscale(.6)}
+mark.srch{background:rgba(62,230,214,.28);color:#fff;border-radius:3px;padding:0 2px}
+.nav-foot{position:sticky;bottom:0;margin-top:14px;padding:10px 22px;border-top:1px solid var(--line);background:rgba(7,11,18,.94);font-family:var(--mono);font-size:11px;color:var(--mut);display:flex;justify-content:space-between;align-items:center}
+.nav-foot b{color:var(--cyan)}
+.sec-title{position:relative}
+.anchor-btn{opacity:0;border:1px solid var(--line2);background:var(--panel);color:var(--cyan);border-radius:8px;font-size:13px;padding:2px 8px;margin-left:10px;cursor:pointer;vertical-align:middle;transition:opacity .2s,transform .2s;font-family:inherit}
+.sec-title:hover .anchor-btn,.anchor-btn:focus{opacity:1}
+.anchor-btn:hover{transform:scale(1.08);border-color:var(--cyan)}
+#toast{position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);background:rgba(24,34,56,.95);border:1px solid var(--cyan);color:var(--txt);font-size:13px;padding:9px 20px;border-radius:999px;opacity:0;pointer-events:none;transition:all .3s;z-index:200;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.faq{border:1px solid var(--line);border-radius:14px;background:var(--panel);margin-bottom:12px;overflow:hidden;transition:border-color .25s}
+.faq:hover{border-color:rgba(91,157,255,.4)}
+.faq.open{border-color:rgba(62,230,214,.45)}
+.faq-q{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:none;color:var(--txt);font-size:14.5px;font-weight:700;padding:16px 20px;cursor:pointer;font-family:inherit}
+.faq-q .fq-ico{margin-left:auto;color:var(--cyan);transition:transform .3s;flex-shrink:0}
+.faq.open .fq-ico{transform:rotate(45deg)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .35s ease}
+.faq-a-in{padding:0 20px 16px;font-size:13.5px;color:var(--dim);line-height:1.8}
+.faq-a-in code{font-size:12px}
+.atk-demo{border:1px solid var(--line);border-radius:18px;background:var(--panel);padding:26px;margin-top:26px}
+.atk-btns{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.atk-btn{font-family:inherit;font-size:13px;padding:8px 20px;border-radius:999px;border:1px solid var(--line2);background:var(--bg2);color:var(--dim);cursor:pointer;transition:all .25s}
+.atk-btn.on-red{border-color:var(--red);color:var(--red);background:rgba(255,112,112,.1);font-weight:700}
+.atk-btn.on-green{border-color:var(--green);color:var(--green);background:rgba(91,228,155,.1);font-weight:700}
+.atk-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.atk-col{border:1px solid var(--line);border-radius:14px;padding:20px;transition:all .4s}
+.atk-col h4{font-size:14px;margin-bottom:10px}
+.atk-col ul{list-style:none;font-size:12.8px;color:var(--dim)}
+.atk-col li{padding:5px 0;border-bottom:1px dashed rgba(34,48,78,.5)}
+.atk-col li:last-child{border-bottom:none}
+.atk-verdict{margin-top:12px;font-family:var(--mono);font-size:12.5px;font-weight:800;padding:8px 14px;border-radius:10px;transition:all .4s}
+.atk-demo.attacked .atk-col.bad{border-color:rgba(255,112,112,.55);background:linear-gradient(160deg,rgba(255,112,112,.07),transparent 60%)}
+.atk-demo.attacked .atk-col.good{border-color:rgba(91,228,155,.6);background:linear-gradient(160deg,rgba(91,228,155,.08),transparent 60%);box-shadow:0 0 26px rgba(91,228,155,.1)}
+.v-pass{color:var(--green);background:rgba(91,228,155,.12);border:1px solid rgba(91,228,155,.4)}
+.v-fail{color:var(--red);background:rgba(255,112,112,.12);border:1px solid rgba(255,112,112,.45)}
+.v-block{color:var(--green);background:rgba(91,228,155,.12);border:1px solid rgba(91,228,155,.45)}
+.value-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:14px}
+.vcard{border:1px solid var(--line);border-radius:14px;padding:20px;background:var(--panel);transition:transform .25s,border-color .25s;position:relative}
+.vcard:hover{transform:translateY(-4px);border-color:rgba(62,230,214,.45)}
+.vcard .vt{font-size:14.5px;font-weight:800;margin-bottom:6px}
+.vcard p{font-size:12.8px;color:var(--dim)}
+.vcard .vk{margin-top:10px;font-family:var(--mono);font-size:10.5px;color:var(--cyan);border-top:1px dashed var(--line);padding-top:8px}
+.nofit{border:1px dashed rgba(255,112,112,.35);border-radius:14px;padding:18px 22px;background:rgba(255,112,112,.04);font-size:13px;color:var(--dim)}
+.nofit b{color:var(--red)}
+#navToggle{display:none}
+
+/* ============ 框架设计（新增章节） ============ */
+.axiom-no{font-family:var(--mono);font-size:22px;font-weight:900;background:linear-gradient(90deg,var(--cyan),var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent;margin-right:8px}
+.to{font-family:var(--mono);font-size:11px;color:var(--mut);border-left:2px solid var(--line2);padding-left:10px;margin-top:10px}
+.to b{color:var(--green)}
+.to em{color:var(--red);font-style:normal}
+.fw-map td:first-child{white-space:nowrap}
+/* ===== 案例复盘 / 成效度量 / 闸门模拟器 ===== */
+.chain-svg{width:100%;height:auto;display:block}
+.gsim{margin-top:34px;border:1px solid var(--line);border-radius:18px;background:var(--panel);padding:24px 22px;backdrop-filter:blur(8px);position:relative;overflow:hidden}
+.gsim::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--red),transparent 70%)}
+.gsim-atks{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px}
+.gsim-atk{border:1px solid var(--line);border-radius:14px;padding:12px 14px;cursor:pointer;transition:all .2s;background:var(--panel2);user-select:none}
+.gsim-atk:hover{border-color:rgba(255,112,112,.5);transform:translateY(-2px)}
+.gsim-atk.sel{border-color:var(--red);background:rgba(255,112,112,.08);box-shadow:0 0 18px rgba(255,112,112,.14)}
+.gsim-atk .ga{font-family:var(--mono);color:var(--red);font-weight:900;margin-right:6px}
+.gsim-atk b{color:var(--txt);font-size:13px}
+.gsim-atk p{font-size:12px;color:var(--mut);margin:6px 0 0}
+.gsim-atk .gmap{font-size:11px;color:var(--violet);font-family:var(--mono);margin-top:6px}
+.gsim-pipe{position:relative;margin:30px 0 4px;padding:6px 0 2px}
+.gsim-line{position:absolute;left:5%;right:5%;top:50%;height:2px;background:linear-gradient(90deg,var(--line2),rgba(62,230,214,.55),var(--line2));z-index:1}
+.gsim-nodes{display:flex;justify-content:space-between;position:relative;z-index:2}
+.gsim-node{flex:1;text-align:center}
+.gsim-node .gn{display:inline-block;border:1px solid var(--line2);border-radius:12px;background:var(--bg2);padding:8px 9px;font-size:11.5px;font-family:var(--mono);color:var(--dim);transition:all .25s;min-width:66px}
+.gsim-node.gate .gn{border-color:rgba(167,139,255,.5);color:var(--violet)}
+.gsim-node.end .gn{border-color:rgba(91,228,155,.5);color:var(--green)}
+.gsim-node.hit .gn{border-color:var(--red);color:var(--red);animation:gsimFlash .4s 3}
+@keyframes gsimFlash{50%{box-shadow:0 0 24px rgba(255,112,112,.85);background:rgba(255,112,112,.2)}}
+.gsim-pkt{position:absolute;top:50%;left:0;width:20px;height:20px;margin-top:-11px;border-radius:50%;background:radial-gradient(circle,#ffb0b0,var(--red) 62%);box-shadow:0 0 18px rgba(255,112,112,.95);z-index:3;opacity:0;transition:transform .6s ease-in-out,opacity .25s}
+.gsim-pkt::after{content:'⚔';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px}
+.gsim-log{font-family:var(--mono);font-size:12px;max-height:190px;overflow-y:auto;background:#0a0f1a;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:20px;color:var(--dim);line-height:1.9;white-space:pre-wrap}
+.gsim-log .lg-ok{color:var(--green)}
+.gsim-log .lg-no{color:var(--red)}
+.gsim-log .lg-info{color:var(--mut)}
+.mtr-note{font-size:11.5px;color:var(--mut);margin-top:12px;font-family:var(--mono)}
+@media(max-width:900px){.gsim-node .gn{font-size:10px;min-width:0;padding:6px 5px}}
+
+@media(max-width:1080px){
+  #navToggle{display:block;position:fixed;top:14px;left:14px;z-index:120;width:42px;height:42px;border-radius:12px;border:1px solid var(--line2);background:rgba(24,34,56,.95);color:var(--cyan);font-size:18px;cursor:pointer}
+  .sidenav{display:block;position:fixed;left:0;top:0;z-index:110;width:270px;transform:translateX(-105%);transition:transform .3s;box-shadow:20px 0 60px rgba(0,0,0,.5)}
+  .sidenav.open{transform:none}
+  #viewToggle{position:static;margin:0 0 18px}
+  .arch-svg,.chain-svg,.gsim,.tbl-wrap,.card{max-width:100%}
+  .ghost-num{font-size:64px;top:56px}
+}
+
+/* ============ 优化：标题发光分隔线 ============ */
+.sec-title::after{content:'';display:block;width:64px;height:3px;margin-top:12px;border-radius:2px;background:linear-gradient(90deg,var(--cyan),var(--blue),transparent);box-shadow:0 0 10px rgba(62,230,214,.45)}
+
+/* ============ 优化：表格行高亮 ============ */
+tbody tr:hover td{background:rgba(62,230,214,.06)}
+
+/* ============ 优化：卡片 hover 微浮起统一 ============ */
+.card{transition:transform .25s,border-color .25s,box-shadow .25s}
+.card:hover{transform:translateY(-3px);border-color:rgba(91,157,255,.5)}
+.layer{transition:transform .28s,border-color .28s,box-shadow .28s}
+.layer:hover{border-color:rgba(91,157,255,.45)}
+
+/* ============ 优化：SVG 图入场淡入（无 JS/未激活时保持可见） ============ */
+.arch-svg,.chain-svg{opacity:1;transition:opacity .9s ease .15s}
+.reveal:not(.vis) .arch-svg,.reveal:not(.vis) .chain-svg{opacity:0}
+
+/* ============ 优化：侧导航已读进度条 ============ */
+.nav-prog{flex:1;height:4px;margin:0 12px;border-radius:2px;background:rgba(34,48,78,.8);overflow:hidden}
+.nav-prog i{display:block;height:100%;width:0;border-radius:2px;background:linear-gradient(90deg,var(--cyan),var(--blue),var(--violet));transition:width .4s ease;box-shadow:0 0 8px rgba(62,230,214,.5)}
+
+/* ============ 优化：Hero stagger 入场 ============ */
+@keyframes heroIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.hero .badge,.hero h1,.hero-biz,.hero .desc,.hero .meta,.hero .stats-row,.hero .principles,.hero .scroll-hint{animation:heroIn .7s cubic-bezier(.2,.8,.3,1) both}
+.hero .badge{animation-delay:.05s}
+.hero h1{animation-delay:.15s}
+.hero .hero-biz{animation-delay:.25s}
+.hero .desc{animation-delay:.35s}
+.hero .meta{animation-delay:.45s}
+.hero .stats-row{animation-delay:.58s}
+.hero .principles{animation-delay:.72s}
+.hero .scroll-hint{animation:heroIn .7s cubic-bezier(.2,.8,.3,1) .88s both,bob 2.4s 1.8s infinite ease-in-out}
+
+/* ============ 优化：prefers-reduced-motion ============ */
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.001s!important;animation-iteration-count:1!important;transition-duration:.001s!important}
+  .orb{animation:none}
+  #particles{display:none}
+  .hero .meta .caret{animation:none}
+  .scroll-hint{animation:none}
+  .arch-svg .flow{animation:none}
+  .reveal{opacity:1!important;transform:none!important}
+  .reveal:not(.vis) .arch-svg,.reveal:not(.vis) .chain-svg{opacity:1}
+  .hero .badge,.hero h1,.hero-biz,.hero .desc,.hero .meta,.hero .stats-row,.hero .principles,.hero .scroll-hint{animation:none}
+}
+
+/* ============ 优化：打印 / 导出 PDF ============ */
+@media print{
+  body{background:#fff;color:#111;line-height:1.6}
+  .sidenav,#progress,#cursorGlow,.orb,#particles,.bg-grid,#topBtn,#navToggle,#toast,.scroll-hint,.anchor-btn,#viewToggle{display:none!important}
+  .main{padding:0}
+  .layout{display:block}
+  section{padding-top:28px;page-break-inside:avoid}
+  .reveal{opacity:1!important;transform:none!important}
+  .reveal:not(.vis) .arch-svg,.reveal:not(.vis) .chain-svg{opacity:1}
+  .card,.layer,.vcard,.tbl-wrap,.gsim,.faq{background:#fff;border-color:#999;box-shadow:none}
+  .sec-title,.card h3,.layer .lt,.vcard .vt{color:#000}
+  .sec-sub,.layer p,.vcard p,td,.faq-a-in,ul.dot{color:#222}
+  th{color:#000;border-bottom:2px solid #333}
+  td{border-bottom:1px solid #999}
+  .tbl-wrap{border:1.5px solid #666}
+  .ghost-num{-webkit-text-stroke:1px rgba(0,0,0,.12)}
+  pre{background:#f5f5f5;color:#111;border:1px solid #999}
+  .biz-note{background:#fff8ec;border-color:#b97f1c;color:#111}
+  a{color:#000;text-decoration:underline}
+  .arch-svg text{fill:#111}
+  .nav-foot{display:none}
+}
+
+/* ============ V7 · 动效与交互对齐（全站统一语言） ============ */
+@media screen{
+/* 章节标题渐显下划线 */
+.sec-title{position:relative}
+.sec-title::after{content:'';position:absolute;left:0;bottom:-7px;height:3px;width:0;border-radius:2px;background:linear-gradient(90deg,var(--cyan),var(--blue));transition:width .6s cubic-bezier(.2,.8,.2,1)}
+section.vis .sec-title::after{width:52px}
+.sec-title:hover::after{width:110px}
+/* SVG 虚线连接器全局流动 */
+svg line[stroke-dasharray],svg path[stroke-dasharray]{animation:dashmove 1.4s linear infinite}
+/* SVG 节点脉冲 */
+.arch-svg circle,.chain-svg circle,.fw-map circle{transform-box:fill-box;transform-origin:center;animation:e2eNode 3s ease-in-out infinite}
+@keyframes e2eNode{0%,100%{opacity:.85}50%{opacity:1}}
+/* 卡片顶光条扫过 */
+.vcard,.layer,.card,.faq{position:relative}
+.vcard::after,.layer::after{content:'';position:absolute;top:0;left:0;right:0;height:2.5px;border-radius:2px;background:linear-gradient(90deg,var(--cyan),transparent 70%);transform:scaleX(0);transform-origin:left;transition:transform .45s cubic-bezier(.2,.8,.2,1)}
+.vcard:hover::after,.layer:hover::after{transform:scaleX(1)}
+.layer,.card{transition:transform .3s,border-color .3s,box-shadow .3s}
+.card:hover{transform:translateY(-3px);box-shadow:0 14px 34px rgba(0,0,0,.42)}
+/* FAQ 交互强化 */
+.faq-q{transition:background .25s,padding-left .25s}
+.faq-q:hover{background:rgba(91,157,255,.07);padding-left:22px}
+.faq.open .faq-q,.faq-q[aria-expanded="true"]{color:var(--cyan)}
+/* 错落入场：章节可见时子元素依次浮现 */
+.reveal .vcard,.reveal .layer,.reveal .faq,.reveal .tl-item,.reveal .stat-card,.reveal .attack,.reveal .gcard{opacity:0;transform:translateY(16px);transition:opacity .55s cubic-bezier(.2,.8,.2,1),transform .55s cubic-bezier(.2,.8,.2,1)}
+.reveal.vis .vcard,.reveal.vis .layer,.reveal.vis .faq,.reveal.vis .tl-item,.reveal.vis .stat-card,.reveal.vis .attack,.reveal.vis .gcard{opacity:1;transform:none}
+.reveal.vis .vcard:nth-child(2),.reveal.vis .layer:nth-child(2),.reveal.vis .faq:nth-child(2),.reveal.vis .tl-item:nth-child(2),.reveal.vis .stat-card:nth-child(2){transition-delay:.07s}
+.reveal.vis .vcard:nth-child(3),.reveal.vis .layer:nth-child(3),.reveal.vis .faq:nth-child(3),.reveal.vis .tl-item:nth-child(3),.reveal.vis .stat-card:nth-child(3){transition-delay:.14s}
+.reveal.vis .vcard:nth-child(4),.reveal.vis .layer:nth-child(4),.reveal.vis .faq:nth-child(4),.reveal.vis .tl-item:nth-child(4),.reveal.vis .stat-card:nth-child(4){transition-delay:.21s}
+.reveal.vis .vcard:nth-child(5),.reveal.vis .faq:nth-child(5),.reveal.vis .tl-item:nth-child(5),.reveal.vis .stat-card:nth-child(5){transition-delay:.28s}
+.reveal.vis .vcard:nth-child(6),.reveal.vis .faq:nth-child(6),.reveal.vis .tl-item:nth-child(6),.reveal.vis .stat-card:nth-child(6){transition-delay:.35s}
+.reveal.vis .tl-item:nth-child(7),.reveal.vis .faq:nth-child(7){transition-delay:.42s}
+.reveal.vis .tl-item:nth-child(8),.reveal.vis .faq:nth-child(8){transition-delay:.49s}
+.reveal.vis .tl-item:nth-child(9),.reveal.vis .faq:nth-child(9){transition-delay:.56s}
+.reveal.vis .tl-item:nth-child(10),.reveal.vis .faq:nth-child(10){transition-delay:.63s}
+/* 闸门标签呼吸 */
+.tag.gate,.gate-flag{animation:gatePulse 2.6s ease-in-out infinite}
+/* 时间线主轴流光 */
+.timeline::before{background:linear-gradient(180deg,var(--cyan),var(--blue),var(--violet),var(--cyan)) !important;background-size:100% 300% !important;animation:tlFlow 5s linear infinite}
+@keyframes tlFlow{0%{background-position:0 0}100%{background-position:0 300%}}
+}
+
+@media screen{
+.task.tq{padding:0;overflow:hidden}
+.task.tq>summary{display:grid;grid-template-columns:64px 40px 1fr 22px;align-items:center;gap:10px;padding:11px 16px;cursor:pointer;list-style:none;user-select:none}
+.task.tq>summary::-webkit-details-marker{display:none}
+.task.tq>summary .tname{font-size:13.5px;font-weight:700;color:var(--txt)}
+.task.tq>summary:hover{background:rgba(62,230,214,.05)}
+.task.tq .tq-arrow{color:var(--mut);transition:transform .25s;font-size:13px;text-align:center}
+.task.tq[open] .tq-arrow{transform:rotate(45deg);color:var(--cyan)}
+.task.tq .tq-body{padding:2px 16px 14px 84px;border-top:1px dashed var(--line)}
+.task.tq[open]{border-color:var(--mod-c)}
+.task-grid{gap:8px}
+}
+
+@media screen{
+.xdeck{margin-top:18px}
+.xtabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.xtab{padding:8px 18px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--dim);font-size:12.5px;font-weight:600;cursor:pointer;transition:all .22s;font-family:inherit}
+.xtab:hover{color:var(--txt);border-color:rgba(62,230,214,.45);transform:translateY(-1px)}
+.xtab.on{color:#081018;background:linear-gradient(90deg,#3ee6d6,#5b9dff);border-color:transparent;box-shadow:0 4px 18px rgba(62,230,214,.28)}
+.xpane{display:none}
+.xpane.show{display:block;animation:xpFade .4s cubic-bezier(.2,.7,.3,1)}
+@keyframes xpFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.part-div{display:flex;align-items:center;gap:16px;margin:64px 0 0;padding:0 4px}
+.part-div::before,.part-div::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(62,230,214,.4),transparent)}
+.part-div span{font-size:11.5px;letter-spacing:3px;color:var(--mut);font-weight:700;white-space:nowrap}
+.part-div b{color:var(--cyan)}
+}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div>
+<div id="cursorGlow"></div>
+<div id="progress"></div>
+<a href="../index.html" title="返回工具体系首页" style="position:fixed;right:22px;bottom:22px;z-index:999;display:flex;align-items:center;gap:7px;padding:10px 16px;border-radius:999px;border:1px solid rgba(62,230,214,.45);background:rgba(10,15,24,.9);backdrop-filter:blur(8px);color:#3ee6d6;font-size:12.5px;font-weight:700;text-decoration:none;box-shadow:0 4px 24px rgba(62,230,214,.18)">⌂ 返回首页</a>
+
+<div class="layout">
+<nav class="sidenav" id="sidenav">
+  <div class="logo">
+    <div class="t1">E2E-ATW</div>
+    <div class="t2">IMPL-20261016-V2.2</div>
+  </div>
+  <a class="rtn-home" href="../index.html" style="display:flex;align-items:center;gap:8px;margin:10px 14px 4px;padding:9px 12px;border:1px solid rgba(62,230,214,.4);border-radius:10px;background:linear-gradient(90deg,rgba(62,230,214,.14),rgba(91,157,255,.08));color:#3ee6d6 !important;font-size:12.5px;font-weight:700;text-decoration:none;border-left:1px solid rgba(62,230,214,.4)"><span style="font-size:14px">←</span> 返回工具体系首页</a>
+  <a class="rtn-matrix" href="../index.html#matrix" style="display:flex;align-items:center;gap:8px;margin:4px 14px 8px;padding:7px 12px;border-radius:10px;color:var(--dim);font-size:12px;text-decoration:none;border-left:2px solid transparent"><span>🧭</span> 工具矩阵 · 联动与拓展</a>
+  <div class="nav-search"><span class="si">🔍</span><input id="navSearch" type="search" placeholder="全文搜索…（Esc 清空）" aria-label="全文搜索"></div>
+  <div style="padding:2px 22px 10px"><span id="viewToggleNav" role="switch" aria-label="视角切换"><span class="vt-opt" data-v="biz">👔 业务视角</span><span class="vt-opt" data-v="tech">🔧 技术视角</span></span></div>
+  <div class="nav-part">总览</div>
+  <a href="#hero"><span class="ndot"></span>首页</a>
+  <a href="#exec"><span class="ndot"></span>三分钟速览 👔</a>
+  <a href="#framework"><span class="ndot"></span>框架设计</a>
+  <a href="#design"><span class="ndot"></span>核心设计思想</a>
+  <a href="#case"><span class="ndot"></span>案例复盘</a>
+  <a href="#arch"><span class="ndot"></span>总体架构</a>
+  <a href="#pipeline"><span class="ndot"></span>流水线引擎 FR-02</a>
+  <a href="#trust"><span class="ndot"></span>可信基座 FR-01</a>
+  <a href="#capabilities"><span class="ndot"></span>能力矩阵</a>
+  <a href="#quickstart"><span class="ndot"></span>快速上手</a>
+  <div class="nav-part">八大模块 · 46 任务</div>
+  <a href="#modules"><span class="ndot"></span>模块总览</a>
+  <a href="#pline"><span class="ndot"></span>专项桥接 P 线</a>
+  <div class="nav-part">体系与交付</div>
+  <a href="#gates"><span class="ndot"></span>闸门体系 ×21</a>
+  <a href="#attack"><span class="ndot"></span>攻击防御矩阵</a>
+  <a href="#accept"><span class="ndot"></span>验收成绩</a>
+  <a href="#metrics"><span class="ndot"></span>成效度量</a>
+  <div class="nav-part">附录</div>
+  <a href="#faq"><span class="ndot"></span>常见疑问 FAQ</a>
+  <div class="nav-foot"><span>已读章节</span><span class="nav-prog" aria-hidden="true"><i id="readBar"></i></span><b id="readCount">0/28</b></div>
+</nav>
+
+<main class="main">
+
+<!-- ================= HERO ================= -->
+<section class="hero" id="hero">
+  <canvas id="particles"></canvas>
+  <span id="viewToggle" role="switch" aria-label="视角切换"><span class="vt-opt" data-v="biz">👔 业务视角</span><span class="vt-opt" data-v="tech">🔧 技术视角</span></span>
+  <div class="badge"><span class="dot"></span>E2E-ATW 通用自动化测试工作台 · V2.2 全模块实现说明</div>
+  <h1>让每一次测试结论<br><span class="grad">都可被机器证明</span></h1>
+  <p class="hero-biz">面向测试管理者：把 UI 回归从「人点三天、结论难复核」变成「机器跑通、结果可证明」——耗时、证据、口径全部落到可复核的机器产物上。</p>
+  <p class="desc">五源输入 → 用例自生成 → 执行 → 数据实证核验 → 报告 → 闸门验收，全链路可机器证明：机械环节全脚本化 · AI 产物必经机器验收 · 结论可信链三道防线 · 规则单一来源 contract.json。</p>
+  <div class="meta"><span id="typewriter"></span><span class="caret"></span></div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="num" data-n="46">0</div><div class="lbl">实现任务（六波次）</div></div>
+    <div class="stat-card"><div class="num" data-n="8">0</div><div class="lbl">功能模块（+P 专项线）</div></div>
+    <div class="stat-card"><div class="num" data-n="21">0</div><div class="lbl">确定性闸门</div></div>
+    <div class="stat-card"><div class="num" data-n="8">0</div><div class="lbl">流水线阶段</div></div>
+    <div class="stat-card"><div class="num" data-n="31">0</div><div class="lbl">Schema 注册项</div></div>
+    <div class="stat-card"><div class="num" data-n="33">0</div><div class="lbl">可执行脚本</div></div>
+  </div>
+  <div class="principles">
+    <span class="chip"><b>①</b> 机械环节全脚本化</span>
+    <span class="chip"><b>②</b> AI 产物必经机器验收</span>
+    <span class="chip"><b>③</b> 结论可信链三道防线</span>
+    <span class="chip"><b>④</b> 规则单一来源 contract.json</span>
+  </div>
+  <div class="scroll-hint">▼ 向下滚动探索</div>
+</section><section id="exec" class="reveal">
+  <div class="ghost-num">3′</div>
+  <div class="sec-kicker">Executive Brief · 业务向速览</div>
+  <h2 class="sec-title">业务速览：价值 · 场景 · 边界</h2>
+  <p class="sec-sub">不看代码也能读懂的一页：它解决什么、怎么解决、带来什么。括号内为对应机制名，技术细节见后续章节。</p>
+
+  <div class="layers">
+    <div class="layer l1"><div class="lico">🐢</div><div class="lt">它解决什么</div><p>版本回归靠人点：一轮全量以天计，挤占版本窗口；「全绿」报告无法复核，出了问题难追溯；定位与业务经验散在个人脑中，人员一换测试能力清零。</p></div>
+    <div class="layer l2"><div class="lico">⚙️</div><div class="lt">它怎么解决</div><p>五源输入（需求/规格/代码/数据口径/知识库）一次声明，机器自动产出用例并执行；界面断言之外强制数据实证（双轨断言），最终产出带防伪核验的归档报告；AI 只做工序内的语义判断，产出必经机器验收（验收戳）。</p></div>
+    <div class="layer l3"><div class="lico">📈</div><div class="lt">它带来什么</div><p>时间：机械阶段无人值守、夜间自动执行，不占版本窗口；可信度：报告每个数字可被第三方离线复核（attest.py），篡改/虚报检出率 14/14；可交接性：规则与经验沉淀为配置与知识库，换需求开箱即用（init_project）。</p></div>
+  </div><div class="xdeck">
+<div class="xtabs"><button class="xtab on" data-pane="xp-exec-0">业务流程</button><button class="xtab" data-pane="xp-exec-1">价值场景</button><button class="xtab" data-pane="xp-exec-2">不适用边界</button></div><div class="xpane show" id="xp-exec-0">
+  <div class="card"><div class="flowmap">
+    <div class="frow"><span class="fnode src">需求材料（五源输入）</span><span class="farrow"></span><span class="fnode">机器解析 · 生成用例</span><span class="farrow"></span><span class="fnode">环境预检（不达标即停）</span></div>
+    <div class="fdown"></div>
+    <div class="frow"><span class="fnode">自动执行（读/写链路）</span><span class="farrow"></span><span class="fnode">数据实证核验</span><span class="farrow"></span><span class="fnode gate">失败归因 + 21 项质量闸门 ⛨</span></div>
+    <div class="fdown"></div>
+    <div class="frow"><span class="fnode out">核验报告（可归档）</span><span class="farrow"></span><span class="fnode out">第三方离线复核 ✓（attest.py）</span></div>
+  </div></div>
+  <p style="font-size:12.5px;color:var(--mut);margin-top:10px">不熟悉术语？可先查<a href="#faq" style="color:var(--cyan)">附录术语表</a>，或切换到右上角「👔 业务视角」只看业务解读。</p></div><div class="xpane" id="xp-exec-1">
+  <div class="value-grid">
+    <div class="vcard"><div class="vt">🔄 版本迭代回归</div><p>每次发版前的全量 UI 回归由机器无人值守执行（机械阶段）：从「人点三天」变为「夜间一次执行窗口」，结果可复跑、可对比。</p><div class="vk">能力锚点 → 八阶段流水线 · 缓存与断点续跑</div></div>
+    <div class="vcard"><div class="vt">✅ 需求验收</div><p>新需求上线前，从需求材料直接生成用例并产出验收证据：界面表现与后台数据双重核验（双轨断言），杜绝「页面显示成功、实际没落库」的假通过。</p><div class="vk">能力锚点 → init_project 五源输入 · verify_data 数据实证</div></div>
+    <div class="vcard"><div class="vt">🤝 跨人交接</div><p>测试经验沉淀为知识库与规则配置而非个人记忆，人员变动后能力不缩水；业务规则集中在一处维护（单一规则来源 contract.json），口径不随人走。</p><div class="vk">能力锚点 → 三层知识库 · contract.json</div></div>
+    <div class="vcard"><div class="vt">📦 外包/供应商交付验收</div><p>交付物附带可独立复核的证据链：第三方无需信任交付方，用独立小工具（attest.py，221 行单文件）离线重算即可验证报告真伪。</p><div class="vk">能力锚点 → 链式 hash · attest.py 离线复核</div></div>
+    <div class="vcard"><div class="vt">🧾 审计与留痕</div><p>每轮执行的用例、证据、数字全部留档并串成防篡改链，任何事后改动（改数、删文件、换报告）都会在复核时断裂定位，满足审计可追溯要求。</p><div class="vk">能力锚点 → run_dir SSOT · manifest 链式 hash</div></div>
+    <div class="vcard"><div class="vt">🧯 质量红线守门</div><p>21 项确定性质量闸门在出报告前强制检查：引用不存在、数字对不上、证据过期等任一命中即整体 FAIL 且禁止归档，「带病的绿」发不出去。</p><div class="vk">能力锚点 → 闸门体系 G-01~G-21</div></div>
+  </div></div><div class="xpane" id="xp-exec-2">
+  <div class="nofit">
+    <b>它不是什么：</b>① 不替代<b>真机/兼容性测试</b>——执行层是浏览器自动化（Playwright），不覆盖 App 真机矩阵；② 不做<b>性能压测</b>——有步骤级耗时遥测，但不产出并发压力指标；③ 不做<b>安全渗透测试</b>——「攻击防御」指对报告本身的防篡改，而非对被测系统的渗透；④ 不承诺<b>业务语义无人复核</b>——机械阶段支持无人值守，AI 语义判断的业务类结论按设计强制人工复核（pending_review）。
+  </div></div></div></section>
+
+<!-- ================= 框架设计 ================= -->
+<div class="part-div"><span>PART 01 · 设计思想 <b>DESIGN</b></span></div>
+
+<section id="framework" class="reveal">
+  <div class="ghost-num">01</div>
+  <div class="sec-kicker">Framework Design · 设计总纲</div>
+  <h2 class="sec-title">框架设计：从一次「假绿」事故说起</h2>
+  <p class="sec-sub">本章是设计总纲：先讲设计思路（三条公理），再讲设计过程（四步推导），然后给出框架全景（五层架构与决策），最后摊开设计取舍。先业务语言，括号内为技术锚点，细节在后续章节展开。</p>
+  <div class="biz-note"><span class="bi">💼</span><div><b>业务解读：</b>这一章回答「它为什么长成这样」。结论先行：所有设计都不是炫技，而是从一次真实事故反推出来的——每一个机制都能追溯到一类具体的「被骗方式」。</div></div><div class="xdeck">
+<div class="xtabs"><button class="xtab on" data-pane="xp-framework-0">三公理</button><button class="xtab" data-pane="xp-framework-1">四步推导</button><button class="xtab" data-pane="xp-framework-2">五层全景</button><button class="xtab" data-pane="xp-framework-3">痛点映射</button><button class="xtab" data-pane="xp-framework-4">设计取舍</button></div><div class="xpane show" id="xp-framework-0">
+  <p style="font-size:13.8px;color:var(--dim);margin-bottom:18px">2025-09-29 PROJ-179「假绿」事故：报告全绿、数字却无法从执行记录复核——问题不在人，而在<b style="color:var(--txt)">流程把可信寄托在人的自觉上</b>。由此立下三条不可让渡的设计公理：</p>
+  <div class="layers">
+    <div class="layer l1"><div class="lt"><span class="axiom-no">①</span>机械环节全脚本化</div><p>凡是能用确定性代码做的，绝不交给概率性判断。解析、生成、执行、核验、报告全部由脚本完成，人（和 AI）不手工搬运中间结果。</p><span class="lk">→ 八阶段流水线唯一入口 atw.py · 33 个可执行脚本</span></div>
+    <div class="layer l2"><div class="lt"><span class="axiom-no">②</span>AI 产物必经机器验收</div><p>AI 只做语义加工（断言设计、归因、覆盖判定），产出必须过确定性验收器打戳（gated_at），无戳的产物下游一律拒绝消费。</p><span class="lk">→ 三段式：备料 brief → AI draft → 脚本验收打戳 · ai_gate.py 57 行</span></div>
+    <div class="layer l3"><div class="lt"><span class="axiom-no">③</span>一切结论可证伪</div><p>报告里的每个数字都能从盘上产物重算（claims 对账），每个引用都能被独立工具复核——复核者不依赖执行环境、不需要信任交付方。</p><span class="lk">→ manifest 链式 hash · attest.py 离线复核器（221 行单文件）</span></div>
+  </div></div><div class="xpane" id="xp-framework-1">
+  <p style="font-size:13.8px;color:var(--dim);margin-bottom:18px">设计方法固定四步：<b style="color:var(--txt)">问题清单 → 威胁建模 → 机制设计 → 闸门固化</b>——明确防什么（四类威胁）、也明确不防什么；全部规则收敛到 contract.json 单一来源，编译分发为 lint / precheck / gate 三通道共 21 项闸门。</p>
+  <div class="card tech-only" style="padding:16px">
+  <svg class="arch-svg" viewBox="0 0 1180 470" role="img" aria-label="设计推导流程图：问题→威胁→机制→闸门">
+    <defs>
+      <linearGradient id="fwHead" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3ee6d6"/><stop offset="1" stop-color="#a78bff"/></linearGradient>
+    </defs>
+    <rect class="lane" x="10" y="10" width="265" height="448" rx="14"/>
+    <rect class="lane" x="305" y="10" width="265" height="448" rx="14"/>
+    <rect class="lane" x="600" y="10" width="265" height="448" rx="14"/>
+    <rect class="lane" x="895" y="10" width="265" height="448" rx="14"/>
+    <rect x="10" y="10" width="265" height="4" rx="2" fill="url(#fwHead)" opacity=".7"/>
+    <text class="band-t" x="142" y="44" text-anchor="middle">① 问题清单</text>
+    <text class="band-t" x="437" y="44" text-anchor="middle">② 威胁建模</text>
+    <text class="band-t" x="732" y="44" text-anchor="middle">③ 机制设计</text>
+    <text class="band-t" x="1027" y="44" text-anchor="middle">④ 闸门固化</text>
+    <text class="band-s" x="142" y="60" text-anchor="middle">PAIN POINTS</text>
+    <text class="band-s" x="437" y="60" text-anchor="middle">THREAT MODEL</text>
+    <text class="band-s" x="732" y="60" text-anchor="middle">MECHANISMS</text>
+    <text class="band-s" x="1027" y="60" text-anchor="middle">GATES</text>
+    <g class="nd in"><rect x="35" y="78" width="215" height="62" rx="12"/><text class="t1" x="142" y="102" text-anchor="middle">回归慢 · 以天计</text><text class="t2" x="142" y="122" text-anchor="middle">版本窗口被测试挤占</text></g>
+    <g class="nd in"><rect x="35" y="160" width="215" height="62" rx="12"/><text class="t1" x="142" y="184" text-anchor="middle">结论不可证 · 假绿</text><text class="t2" x="142" y="204" text-anchor="middle">PROJ-179 2025-09-29</text></g>
+    <g class="nd in"><rect x="35" y="242" width="215" height="62" rx="12"/><text class="t1" x="142" y="266" text-anchor="middle">AI 断言幻觉</text><text class="t2" x="142" y="286" text-anchor="middle">引用编造 · 语义漂移</text></g>
+    <g class="nd in"><rect x="35" y="324" width="215" height="62" rx="12"/><text class="t1" x="142" y="348" text-anchor="middle">环境抖动误判 / 经验流失</text><text class="t2" x="142" y="368" text-anchor="middle">冤枉版本 · 知识断代</text></g>
+    <g class="nd gate"><rect x="330" y="78" width="215" height="62" rx="12"/><text class="t1" x="437" y="102" text-anchor="middle">意外陈旧组合</text><text class="t2" x="437" y="122" text-anchor="middle">旧产物冒充新结果</text></g>
+    <g class="nd gate"><rect x="330" y="160" width="215" height="62" rx="12"/><text class="t1" x="437" y="184" text-anchor="middle">事后改数 · 虚报</text><text class="t2" x="437" y="204" text-anchor="middle">报告数字被改 / 夸大</text></g>
+    <g class="nd gate"><rect x="330" y="242" width="215" height="62" rx="12"/><text class="t1" x="437" y="266" text-anchor="middle">AI 幻觉结论</text><text class="t2" x="437" y="286" text-anchor="middle">引用不存在的证据</text></g>
+    <g class="nd gate"><rect x="330" y="324" width="215" height="62" rx="12"/><text class="t1" x="437" y="348" text-anchor="middle">交付物替换</text><text class="t2" x="437" y="368" text-anchor="middle">报告与产物被调包</text></g>
+    <text x="437" y="420" text-anchor="middle" fill="#ff7070" font-size="10.5" font-weight="700">边界：不防拥有写权限的恶意操作者</text>
+    <text class="band-s" x="437" y="438" text-anchor="middle">威胁模型四防 · 边界明示</text>
+    <g class="nd pl"><rect x="625" y="78" width="215" height="62" rx="12"/><text class="t1" x="732" y="102" text-anchor="middle">链式 hash + attest</text><text class="t2" x="732" y="122" text-anchor="middle">产物指纹链 · 离线复核</text></g>
+    <g class="nd pl"><rect x="625" y="160" width="215" height="62" rx="12"/><text class="t1" x="732" y="184" text-anchor="middle">claims 对账</text><text class="t2" x="732" y="204" text-anchor="middle">数字从源产物重算</text></g>
+    <g class="nd pl"><rect x="625" y="242" width="215" height="62" rx="12"/><text class="t1" x="732" y="266" text-anchor="middle">验收戳 gated_at</text><text class="t2" x="732" y="286" text-anchor="middle">无戳不消费</text></g>
+    <g class="nd pl"><rect x="625" y="324" width="215" height="62" rx="12"/><text class="t1" x="732" y="348" text-anchor="middle">双轨断言 · 环境二次确认 · 熔断</text><text class="t2" x="732" y="368" text-anchor="middle">界面+数据印证 · 抖动不冤枉版本</text></g>
+    <g class="nd out"><rect x="920" y="96" width="215" height="70" rx="12"/><text class="t1" x="1027" y="122" text-anchor="middle">contract.json</text><text class="t2" x="1027" y="142" text-anchor="middle">单一规则来源</text></g>
+    <g class="nd out"><rect x="920" y="206" width="215" height="70" rx="12"/><text class="t1" x="1027" y="232" text-anchor="middle">三通道分发</text><text class="t2" x="1027" y="252" text-anchor="middle">lint / precheck / gate</text></g>
+    <g class="nd out"><rect x="920" y="316" width="215" height="70" rx="12"/><text class="t1" x="1027" y="342" text-anchor="middle">21 项确定性闸门</text><text class="t2" x="1027" y="362" text-anchor="middle">任一不过 · 禁止归档</text></g>
+    <line class="solid" x1="250" y1="109" x2="328" y2="109" marker-end="url(#arr)"/>
+    <line class="solid" x1="250" y1="191" x2="328" y2="191" marker-end="url(#arr)"/>
+    <line class="solid" x1="250" y1="273" x2="328" y2="273" marker-end="url(#arr)"/>
+    <line class="solid" x1="250" y1="355" x2="328" y2="355" marker-end="url(#arr)"/>
+    <line class="solid" x1="545" y1="109" x2="623" y2="109" marker-end="url(#arr)"/>
+    <line class="solid" x1="545" y1="191" x2="623" y2="191" marker-end="url(#arr)"/>
+    <line class="solid" x1="545" y1="273" x2="623" y2="273" marker-end="url(#arr)"/>
+    <line class="solid" x1="545" y1="355" x2="623" y2="355" marker-end="url(#arr)"/>
+    <path class="flow" d="M840,109 C880,109 882,131 918,131"/>
+    <path class="flow" d="M840,191 C880,191 882,241 918,241"/>
+    <path class="flow" d="M840,273 C880,273 882,241 918,241"/>
+    <path class="flow" d="M840,355 C880,355 882,351 918,351"/>
+  </svg>
+  </div></div><div class="xpane" id="xp-framework-2">
+  <details class="fq tech-only"><summary>展开：五层职责 × 设计决策明细表</summary><div class="tbl-wrap"><table>
+    <tr><th style="width:120px">层</th><th>职责一句话</th><th>关键组件</th><th>为什么这么设计（决策理由）</th><th style="width:190px">与其他层的边界</th></tr>
+    <tr><td><b style="color:var(--cyan)">编排层</b></td><td>唯一入口，八阶段串行推进、缓存与断点续跑</td><td>atw.py + pipeline.json</td><td>流程只有一个入口、顺序写死：跳步在机器层面不可行，排除「跳过麻烦步骤直接出报告」</td><td>只调度不干活，业务逻辑全部下沉到脚本</td></tr>
+    <tr><td><b style="color:var(--blue)">执行层</b></td><td>浏览器自动化执行与台账登记</td><td>runner.py（探针 / 数据池 / 遥测）</td><td>执行前先探活防环境误报；写链路数据池隔离，速度优化（LPT 调度）与可信机制分离互不干扰</td><td>只产事实（台账+遥测），不下结论</td></tr>
+    <tr><td><b style="color:var(--violet)">状态层</b></td><td>产物格式与单一事实源</td><td>schemas（31 项注册）+ run_dir SSOT + 状态游标</td><td>产物带 schema 版本头、原子写、自动迁移；产物与 run 同生共死，无游标拒绝出报告</td><td>管「产物是什么、属于哪一轮」，不管内容对错</td></tr>
+    <tr><td><b style="color:var(--amber)">契约层</b></td><td>全部规则的单一来源</td><td>config/contract.json → lint / precheck / gate 三通道</td><td>规则收敛一处，文档与代码零双份口径；改规则只改一处，三通道同时生效</td><td>只定义规则，不执行——执行交闸门与脚本</td></tr>
+    <tr><td><b style="color:var(--green)">AI 层</b></td><td>语义判断的唯一合法通道</td><td>ai_gate + 三段式（AI-01/02/03）</td><td>AI 只做语义加工，产出必经确定性验收打戳（gated_at），幻觉内容不入库、不消费</td><td>只写 draft，入库与否由机器验收器决定</td></tr>
+  </table></div></details>
+  <div class="card tech-only" style="padding:16px;margin-top:18px">
+  <svg class="arch-svg" viewBox="0 0 1180 560" role="img" aria-label="五层架构分层决策图">
+    <defs>
+      <linearGradient id="fwCyan" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3ee6d6"/><stop offset="1" stop-color="#2a9d92"/></linearGradient>
+      <linearGradient id="fwBlue" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5b9dff"/><stop offset="1" stop-color="#2f5fb8"/></linearGradient>
+      <linearGradient id="fwViolet" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#a78bff"/><stop offset="1" stop-color="#6f52c9"/></linearGradient>
+      <linearGradient id="fwAmber" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffc25e"/><stop offset="1" stop-color="#b8873a"/></linearGradient>
+      <linearGradient id="fwGreen" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5be49b"/><stop offset="1" stop-color="#2f9d63"/></linearGradient>
+    </defs>
+    <!-- 编排层 -->
+    <rect class="lane" x="14" y="14" width="1152" height="92" rx="12"/>
+    <rect x="26" y="26" width="200" height="68" rx="10" fill="url(#fwCyan)" opacity=".9"/>
+    <text class="band-t" x="126" y="58" text-anchor="middle">编排层</text><text class="band-s" x="126" y="78" text-anchor="middle">ORCHESTRATION</text>
+    <text class="t1" x="252" y="52" fill="#cfd8e6">atw.py + pipeline.json · 八阶段串行 / 缓存 / 断点续跑</text>
+    <text class="lg-t" x="252" y="74">边界：只调度不干活，业务逻辑全部下沉到脚本</text>
+    <rect x="860" y="36" width="290" height="48" rx="24" fill="rgba(62,230,214,.08)" stroke="rgba(62,230,214,.5)"/>
+    <text x="1005" y="57" text-anchor="middle" fill="#3ee6d6" font-size="11.5" font-weight="700">唯一入口串行</text>
+    <text x="1005" y="74" text-anchor="middle" style="fill:#93a2c2;font-size:9.5px;font-family:var(--mono)">→ 跳步在机器层面不可行</text>
+    <!-- 执行层 -->
+    <rect class="lane" x="14" y="122" width="1152" height="92" rx="12"/>
+    <rect x="26" y="134" width="200" height="68" rx="10" fill="url(#fwBlue)" opacity=".9"/>
+    <text class="band-t" x="126" y="166" text-anchor="middle">执行层</text><text class="band-s" x="126" y="186" text-anchor="middle">EXECUTION</text>
+    <text class="t1" x="252" y="160" fill="#cfd8e6">runner.py · 探针预检 / 写链数据池 / 步骤级遥测 / LPT 调度</text>
+    <text class="lg-t" x="252" y="182">边界：只产事实（台账+遥测），不下结论</text>
+    <rect x="860" y="144" width="290" height="48" rx="24" fill="rgba(91,157,255,.08)" stroke="rgba(91,157,255,.5)"/>
+    <text x="1005" y="165" text-anchor="middle" fill="#5b9dff" font-size="11.5" font-weight="700">速度优化与可信机制分离</text>
+    <text x="1005" y="182" text-anchor="middle" style="fill:#93a2c2;font-size:9.5px;font-family:var(--mono)">→ 快不以牺牲可信为代价</text>
+    <!-- 状态层 -->
+    <rect class="lane" x="14" y="230" width="1152" height="92" rx="12"/>
+    <rect x="26" y="242" width="200" height="68" rx="10" fill="url(#fwViolet)" opacity=".9"/>
+    <text class="band-t" x="126" y="274" text-anchor="middle">状态层</text><text class="band-s" x="126" y="294" text-anchor="middle">STATE · SSOT</text>
+    <text class="t1" x="252" y="268" fill="#cfd8e6">schemas（31 项）+ run_dir SSOT + 状态游标 · 原子写 / 自动迁移</text>
+    <text class="lg-t" x="252" y="290">边界：管「产物是什么、属于哪一轮」，不管内容对错</text>
+    <rect x="860" y="252" width="290" height="48" rx="24" fill="rgba(167,139,255,.08)" stroke="rgba(167,139,255,.5)"/>
+    <text x="1005" y="273" text-anchor="middle" fill="#a78bff" font-size="11.5" font-weight="700">产物与 run 同生共死</text>
+    <text x="1005" y="290" text-anchor="middle" style="fill:#93a2c2;font-size:9.5px;font-family:var(--mono)">→ 无游标拒绝出报告</text>
+    <!-- 契约层 -->
+    <rect class="lane" x="14" y="338" width="1152" height="92" rx="12"/>
+    <rect x="26" y="350" width="200" height="68" rx="10" fill="url(#fwAmber)" opacity=".9"/>
+    <text class="band-t" x="126" y="382" text-anchor="middle">契约层</text><text class="band-s" x="126" y="402" text-anchor="middle">CONTRACT</text>
+    <text class="t1" x="252" y="376" fill="#cfd8e6">config/contract.json · 21 闸门 / 词表 / 阈值 → lint · precheck · gate</text>
+    <text class="lg-t" x="252" y="398">边界：只定义规则，不执行——执行交闸门与脚本</text>
+    <rect x="860" y="360" width="290" height="48" rx="24" fill="rgba(255,194,94,.08)" stroke="rgba(255,194,94,.5)"/>
+    <text x="1005" y="381" text-anchor="middle" fill="#ffc25e" font-size="11.5" font-weight="700">单一规则来源</text>
+    <text x="1005" y="398" text-anchor="middle" style="fill:#93a2c2;font-size:9.5px;font-family:var(--mono)">→ 零双份口径</text>
+    <!-- AI 层 -->
+    <rect class="lane" x="14" y="446" width="1152" height="92" rx="12"/>
+    <rect x="26" y="458" width="200" height="68" rx="10" fill="url(#fwGreen)" opacity=".9"/>
+    <text class="band-t" x="126" y="490" text-anchor="middle">AI 层</text><text class="band-s" x="126" y="510" text-anchor="middle">SEMANTIC</text>
+    <text class="t1" x="252" y="484" fill="#cfd8e6">ai_gate + 三段式 · 备料 brief → AI draft → 机器验收打戳</text>
+    <text class="lg-t" x="252" y="506">边界：只写 draft，入库与否由机器验收器决定</text>
+    <rect x="860" y="468" width="290" height="48" rx="24" fill="rgba(91,228,155,.08)" stroke="rgba(91,228,155,.5)"/>
+    <text x="1005" y="489" text-anchor="middle" fill="#5be49b" font-size="11.5" font-weight="700">验收戳 gated_at</text>
+    <text x="1005" y="506" text-anchor="middle" style="fill:#93a2c2;font-size:9.5px;font-family:var(--mono)">→ 幻觉不入库</text>
+    <!-- 层间箭头 -->
+    <line class="flow" x1="590" y1="106" x2="590" y2="122"/>
+    <line class="flow" x1="590" y1="214" x2="590" y2="230"/>
+    <line class="flow" x1="590" y1="322" x2="590" y2="338"/>
+    <line class="flow" x1="590" y1="430" x2="590" y2="446"/>
+  </svg>
+  </div></div><div class="xpane" id="xp-framework-3">
+  <details class="fq tech-only"><summary>展开：问题 → 机制 → 闸门映射表（7 类痛点）</summary><div class="tbl-wrap fw-map"><table>
+    <tr><th>业务痛点</th><th>对应机制</th><th style="width:200px">对应闸门</th></tr>
+    <tr><td>假绿（报告与执行脱节）</td><td>链式 hash + attest 离线复核</td><td><span class="tag gate">G-13 证据时效（新鲜度）</span></td></tr>
+    <tr><td>虚报数字</td><td>claims 对账（数字从源产物重算）</td><td><span class="tag gate">G-15 claims 对账</span></td></tr>
+    <tr><td>引用幻觉（证据不存在）</td><td>验收戳 gated_at + 引用登记</td><td><span class="tag gate">G-14 引用存在</span></td></tr>
+    <tr><td>只查界面不查数据</td><td>双轨断言（界面+数据成对印证）</td><td>AI-01 断言验收（双轨配对）· plan_strength 强度规则</td></tr>
+    <tr><td>环境抖动误判</td><td>环境二次确认 + 熔断-挂起-恢复</td><td>机制兜底：缺陷分类（env 二次确认）· 熔断状态机</td></tr>
+    <tr><td>经验流失（知识断代）</td><td>三层知识库（框架/平台/项目）+ 入库人工确认</td><td>机制兜底：知识效能 KPI + 软闸门（覆盖率软门 0.8）</td></tr>
+    <tr><td>重复劳动</td><td>八阶段流水线 + 内容摘要缓存（只跳重复计算）</td><td>机制兜底：级联失效 · 断点续跑</td></tr>
+  </table></div></details></div><div class="xpane" id="xp-framework-4">
+  <div class="value-grid">
+    <div class="vcard"><div class="vt">🖥️ 单机单会话</div><p>同一需求同一时刻只允许一个 run，不做分布式并发调度。</p><div class="to"><em>放弃：</em>横向扩缩容　<b>换来：</b>零部署依赖，每个结果可归因到唯一一次执行</div></div>
+    <div class="vcard"><div class="vt">🐍 Python 层零额外三方包</div><p>不用 jsonschema 等三方库，自研 schema 校验器。</p><div class="to"><em>放弃：</em>成熟生态的现成功能　<b>换来：</b>老旧环境普适、供应链风险最小化、拷走即用</div></div>
+    <div class="vcard"><div class="vt">🔒 DB 只读通道</div><p>数据核验只走只读账号，受控删除白名单默认关闭。</p><div class="to"><em>放弃：</em>清数造数的便利　<b>换来：</b>数据侧安全优先，测试过程不可能污染生产数据</div></div>
+    <div class="vcard"><div class="vt">👁️ AI 视觉定位默认关闭</div><p>视觉兜底定位（LC-06）默认关闭：AI 只给建议不给坐标、写链路禁用、同元素二次直接 FAIL 人审。</p><div class="to"><em>放弃：</em>定位失败时的全自动兜底　<b>换来：</b>成本与风险闸门优先，AI 永远不直接操控页面</div></div>
+    <div class="vcard"><div class="vt">🧊 缓存只跳计算不跳验证</div><p>内容摘要缓存命中只跳过重复计算，验证类环节每次照跑。</p><div class="to"><em>放弃：</em>二次执行的极致提速　<b>换来：</b>可信优先于速度——缓存再热，闸门一道不少</div></div>
+  </div>
+</div></div></section>
+
+<!-- ================= 核心设计思想 ================= -->
+<section id="design" class="reveal">
+  <div class="ghost-num">02</div>
+  <div class="sec-kicker">Core Design · Controlled RAG &amp; Machine Acceptance</div>
+  <h2 class="sec-title">核心设计思想：受控 RAG 与机器验收闭环</h2>
+  <p class="sec-sub">本章回答一个问题：AI 在这个框架里到底被允许做什么、被禁止做什么。答案是三条相互咬合的设计思想——受控 RAG、机器验收闭环、经验回流飞轮，共同构成「AI 有能力、机器有否决权」的工程结构。</p>
+  <div class="biz-note"><span class="bi">💼</span><div><b>一句话总纲：</b>让 AI 在机器划定的轨道上发挥语义能力——<b>检索增强（RAG）保证 AI「有依据」，机器验收保证 AI「不越界」，经验回流保证系统「越用越强」</b>。AI 的价值被完整保留，AI 的风险被机器拦截。</div></div><div class="xdeck">
+<div class="xtabs"><button class="xtab on" data-pane="xp-design-0">受控 RAG</button><button class="xtab" data-pane="xp-design-1">机器验收</button><button class="xtab" data-pane="xp-design-2">经验回流</button><button class="xtab" data-pane="xp-design-3">用法对比</button><button class="xtab" data-pane="xp-design-4">闭环飞轮</button></div><div class="xpane show" id="xp-design-0">
+  <p style="font-size:13.8px;color:var(--dim);margin-bottom:18px">AI 不凭空写断言，一切产出从知识库检索开始，走固定四步管道：</p>
+  <div class="layers">
+    <div class="layer l1"><div class="lt"><span class="axiom-no">①</span>检索 Retrieve</div><p>5 个知识库（坑点 / 交互策略链 / 失败指纹 / 环境排障 / 业务规则）三层合并、就近优先；dormant 条目不注入，置信度按月衰减保鲜。</p><span class="lk">lib/atw_common.py load_knowledge() · 过滤 L138-141 · 初始置信度 L63</span></div>
+    <div class="layer l2"><div class="lt"><span class="axiom-no">②</span>增强 Augment</div><p>为每条边界规则生成 brief 备料池（字段 + 数据样本 + 判定指引）——AI 只能基于备料池作答。</p><span class="lk">bin/gen_cases.py --emit-assert-briefs · bin/coverage_semantic.py</span></div>
+    <div class="layer l3"><div class="lt"><span class="axiom-no">③</span>生成 → ④验证</div><p>AI 只写 draft；验收器第④道「引用存在性」要求断言<b style="color:var(--txt)">词级命中</b>备料池，不命中即拒——工程化防幻觉。</p><span class="lk">bin/apply_assertions.py check_draft L106-155</span></div>
+  </div></div><div class="xpane" id="xp-design-1">
+  <p style="font-size:13.8px;color:var(--dim);margin-bottom:14px">三段式铁律：<b style="color:var(--txt)">备料（机器）→ 加工（AI）→ 验收打戳（机器）</b>。五道确定性检查（schema / 一一对应 / 双轨配对 / 时间窗口 / 引用词级命中）；批失败率 &gt;30% 停工人审；无戳产物下游一律不消费。</p>
+  <details class="fq tech-only"><summary>展开：三段式机器控制点明细表</summary><div class="tbl-wrap"><table>
+    <thead><tr><th>环节</th><th>执行者</th><th>产物</th><th>机器控制点</th></tr></thead>
+    <tbody>
+      <tr><td>备料 brief</td><td>机器（gen_cases.py）</td><td>assert_briefs/&lt;brief_id&gt;.json</td><td>备料池即验收基准：rule.fields + data_samples 键值</td></tr>
+      <tr><td>语义加工</td><td>AI</td><td>cases/assert_drafts/*.json</td><td>只许加工，不许入库；AI 不触碰任何最终产物</td></tr>
+      <tr><td>验收打戳</td><td>机器（apply_assertions.py + ai_gate.py）</td><td>gated_at + draft_hash 戳</td><td>五道检查 + 批失败率 30% 停工 + 无戳不消费</td></tr>
+    </tbody>
+  </table></div></details></div><div class="xpane" id="xp-design-2">
+  <p style="font-size:13.8px;color:var(--dim);margin-bottom:14px">每轮执行后 learn.py 沉淀坑点，经人工确认闸（KB-02）才入库；置信度衰减保鲜。LC-06 定位成功后 suggested_locator 自动回流策略链——<b style="color:var(--txt)">越用越快、越用越准</b>。</p></div><div class="xpane" id="xp-design-3">
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>维度</th><th>裸用 AI</th><th>传统 RAG</th><th>E2E-ATW 受控 RAG</th></tr></thead>
+    <tbody>
+      <tr><td>依据来源</td><td>无——模型自由发挥</td><td>有——检索结果作上下文</td><td>有——三层 KB 合并 + brief 备料池</td></tr>
+      <tr><td>产出验证</td><td>无——写完即用</td><td>无——依据错了照单全收</td><td>五道确定性检查，词级回溯备料池</td></tr>
+      <tr><td>幻觉后果</td><td>幻觉直接入库</td><td>错误依据被放大</td><td>不命中即拒，批失败 30% 停工人审</td></tr>
+      <tr><td>经验积累</td><td>无</td><td>无</td><td>learn.py 回流 + 人工确认闸 + 置信度衰减保鲜</td></tr>
+    </tbody>
+  </table></div></div><div class="xpane" id="xp-design-4">
+  <div class="card tech-only" style="padding:16px">
+  <svg class="arch-svg" viewBox="0 0 1180 640" role="img" aria-label="受控 RAG 闭环飞轮：知识库检索→brief备料→AI生成→五道机器验收→打戳入库→流水线执行→经验沉淀→回流知识库">
+    <defs>
+      <linearGradient id="dsnRing" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3ee6d6"/><stop offset="1" stop-color="#a78bff"/></linearGradient>
+      <marker id="dsnArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#3ee6d6"/></marker>
+      <marker id="dsnArrowV" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#a78bff"/></marker>
+    </defs>
+    <circle cx="590" cy="320" r="235" fill="none" stroke="url(#dsnRing)" stroke-width="1" opacity=".18"/>
+    <text x="590" y="300" text-anchor="middle" fill="#e2eaf8" font-size="20" font-weight="900">受控 RAG 闭环</text>
+    <text x="590" y="328" text-anchor="middle" class="band-s">RETRIEVE → AUGMENT → GENERATE → VERIFY → LOOP</text>
+    <text x="590" y="348" text-anchor="middle" class="band-s">有依据 · 不越界 · 越用越强</text>
+    <path class="solid" d="M662.6 96.5 A235 235 0 0 1 719.4 123.9" marker-end="url(#dsnArrow)"/>
+    <path class="solid" d="M810 237.5 A235 235 0 0 1 824 299" marker-end="url(#dsnArrow)"/>
+    <path class="solid" d="M791.7 440.6 A235 235 0 0 1 752.4 490" marker-end="url(#dsnArrow)"/>
+    <path class="solid" d="M621.4 553 A235 235 0 0 1 558.5 553" marker-end="url(#dsnArrow)"/>
+    <path class="solid" d="M427.6 490 A235 235 0 0 1 388.3 440.6" marker-end="url(#dsnArrow)"/>
+    <path class="solid" d="M356 299 A235 235 0 0 1 370 237.5" marker-end="url(#dsnArrow)"/>
+    <path d="M460.6 123.9 A235 235 0 0 1 517.4 96.5" fill="none" stroke="#a78bff" stroke-width="1.6" stroke-dasharray="6 6" marker-end="url(#dsnArrowV)"/>
+    <text class="gate-flag" x="468" y="98">回流</text>
+    <g class="nd pl"><rect x="505" y="57" width="170" height="56" rx="12"/><text class="t1" x="590" y="81" text-anchor="middle">知识库检索</text><text class="t2" x="590" y="99" text-anchor="middle">KB 三层合并 · 就近优先</text></g>
+    <g class="nd in"><rect x="689" y="146" width="170" height="56" rx="12"/><text class="t1" x="774" y="170" text-anchor="middle">brief 备料</text><text class="t2" x="774" y="188" text-anchor="middle">--emit-assert-briefs</text></g>
+    <g class="nd in"><rect x="734" y="344" width="170" height="56" rx="12"/><text class="t1" x="819" y="368" text-anchor="middle">AI 生成</text><text class="t2" x="819" y="386" text-anchor="middle">仅语义加工 draft</text></g>
+    <g class="nd gate"><rect x="607" y="504" width="170" height="56" rx="12"/><text class="t1" x="692" y="528" text-anchor="middle">五道机器验收 ⛨</text><text class="t2" x="692" y="546" text-anchor="middle">apply_assertions.py</text></g>
+    <g class="nd out"><rect x="403" y="504" width="170" height="56" rx="12"/><text class="t1" x="488" y="528" text-anchor="middle">打戳入库</text><text class="t2" x="488" y="546" text-anchor="middle">gated_at + draft_hash</text></g>
+    <g class="nd pl"><rect x="276" y="344" width="170" height="56" rx="12"/><text class="t1" x="361" y="368" text-anchor="middle">流水线执行</text><text class="t2" x="361" y="386" text-anchor="middle">八阶段 run + 双轨核验</text></g>
+    <g class="nd out"><rect x="321" y="146" width="170" height="56" rx="12"/><text class="t1" x="406" y="170" text-anchor="middle">经验沉淀</text><text class="t2" x="406" y="188" text-anchor="middle">learn.py + 人工确认闸</text></g>
+  </svg>
+  </div>
+</div></div></section>
+
+<!-- ================= 案例复盘 ================= -->
+<section id="case" class="reveal">
+  <div class="ghost-num">03</div>
+  <div class="sec-kicker">Case Review · PROJ-179</div>
+  <h2 class="sec-title">案例复盘：PROJ-179 假绿拦截链</h2>
+  <p class="sec-sub">2025-09-29 PROJ-179「假绿」事故回放，以及同一剧本今天会被哪几道闸门拦下。</p><div class="xdeck">
+<div class="xtabs"><button class="xtab on" data-pane="xp-case-0">事故回放</button><button class="xtab" data-pane="xp-case-1">拦截链</button><button class="xtab" data-pane="xp-case-2">实证收口</button></div><div class="xpane show" id="xp-case-0">
+  <div class="card"><div class="timeline" style="padding-left:34px">
+    <div class="tl-item"><div class="date">① 执行</div><div class="evt">PROJ-179 库存调拨需求进入 UI 自动化回归，用例在目标环境执行</div></div>
+    <div class="tl-item"><div class="date">② 出报告</div><div class="evt">汇总产出测试报告——但报告与真实执行产物之间没有绑定关系，数字靠人工转填</div></div>
+    <div class="tl-item"><div class="date">③ 报告全绿</div><div class="evt">报告结论「全部通过」，按流程归档，版本据此放行</div></div>
+    <div class="tl-item"><div class="date">④ 人工抽查</div><div class="evt">抽查发现报告数字与实际执行记录对不上：证据引用无法核实，数字无从回溯重算</div></div>
+    <div class="tl-item"><div class="date">⑤ 定位「假绿」</div><div class="evt">结论定性：报告是「假绿」——绿的只是文档，不是执行。问题根源是流程把可信寄托在人的自觉上</div></div>
+  </div></div></div><div class="xpane" id="xp-case-1">
+  <p style="font-size:13.8px;color:var(--dim);margin-bottom:16px">同一份「假绿报告」走今天的流程，会被四道关卡依次拦截：<b style="color:var(--txt)">G-13 拦陈旧数据 · G-14 拦幻觉引用 · G-15 拦虚报数字 · 链式 hash 拦事后替换</b>；归档后 attest.py 仍可离线独立重算复核。</p>
+  <div class="card" style="padding:18px">
+  <svg class="chain-svg" viewBox="0 0 900 300" role="img" aria-label="假绿拦截链与真实执行对比图">
+    <defs>
+      <marker id="caArr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" fill="rgba(255,112,112,.65)"/></marker>
+      <marker id="caArrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" fill="rgba(91,228,155,.65)"/></marker>
+    </defs>
+    <!-- 上：假绿路径 -->
+    <text x="20" y="26" fill="#ff7070" font-size="13" font-weight="700">✗ 假绿报告路径（被拦下）</text>
+    <rect x="20" y="46" width="130" height="52" rx="12" fill="rgba(255,112,112,.1)" stroke="rgba(255,112,112,.6)"/>
+    <text x="85" y="67" fill="#ff9090" font-size="12" text-anchor="middle" font-weight="700">假绿报告</text>
+    <text x="85" y="85" fill="#5c6a8c" font-size="10" text-anchor="middle">数字手填 · 无产物绑定</text>
+    <g font-size="11" text-anchor="middle">
+      <line x1="150" y1="72" x2="186" y2="72" stroke="rgba(255,112,112,.5)" stroke-width="1.5" marker-end="url(#caArr)"/>
+      <rect x="190" y="46" width="118" height="52" rx="12" fill="rgba(167,139,255,.08)" stroke="rgba(167,139,255,.55)"/>
+      <text x="249" y="66" fill="#a78bff" font-weight="700">G-13 证据时效</text>
+      <text x="249" y="84" fill="#5c6a8c" font-size="10">拦陈旧数据冒充本轮</text>
+      <line x1="308" y1="72" x2="344" y2="72" stroke="rgba(255,112,112,.5)" stroke-width="1.5" marker-end="url(#caArr)"/>
+      <rect x="348" y="46" width="118" height="52" rx="12" fill="rgba(167,139,255,.08)" stroke="rgba(167,139,255,.55)"/>
+      <text x="407" y="66" fill="#a78bff" font-weight="700">G-14 引用存在</text>
+      <text x="407" y="84" fill="#5c6a8c" font-size="10">拦幻觉/失效证据引用</text>
+      <line x1="466" y1="72" x2="502" y2="72" stroke="rgba(255,112,112,.5)" stroke-width="1.5" marker-end="url(#caArr)"/>
+      <rect x="506" y="46" width="118" height="52" rx="12" fill="rgba(167,139,255,.08)" stroke="rgba(167,139,255,.55)"/>
+      <text x="565" y="66" fill="#a78bff" font-weight="700">G-15 claims 对账</text>
+      <text x="565" y="84" fill="#5c6a8c" font-size="10">拦与产物不符的虚报数</text>
+      <line x1="624" y1="72" x2="660" y2="72" stroke="rgba(255,112,112,.5)" stroke-width="1.5" marker-end="url(#caArr)"/>
+      <rect x="664" y="46" width="118" height="52" rx="12" fill="rgba(167,139,255,.08)" stroke="rgba(167,139,255,.55)"/>
+      <text x="723" y="66" fill="#a78bff" font-weight="700">TR 链式 hash</text>
+      <text x="723" y="84" fill="#5c6a8c" font-size="10">拦归档后的事后替换</text>
+    </g>
+    <line x1="782" y1="72" x2="818" y2="72" stroke="rgba(255,112,112,.7)" stroke-width="1.5" marker-end="url(#caArr)"/>
+    <rect x="822" y="46" width="58" height="52" rx="12" fill="rgba(255,112,112,.16)" stroke="#ff7070"/>
+    <text x="851" y="76" fill="#ff7070" font-size="13" text-anchor="middle" font-weight="900">FAIL</text>
+    <!-- 中：复核 -->
+    <text x="20" y="152" fill="#93a2c2" font-size="12">归档后：<tspan fill="#3ee6d6" font-weight="700">attest.py（221 行）</tspan> 离线重算 —— 第三方无需执行环境、无需信任交付方，即可独立复核真伪</text>
+    <!-- 下：真实路径 -->
+    <text x="20" y="196" fill="#5be49b" font-size="13" font-weight="700">✓ 真实执行路径（放行归档）</text>
+    <rect x="20" y="216" width="130" height="52" rx="12" fill="rgba(91,228,155,.08)" stroke="rgba(91,228,155,.55)"/>
+    <text x="85" y="237" fill="#5be49b" font-size="12" text-anchor="middle" font-weight="700">真实执行产物</text>
+    <text x="85" y="255" fill="#5c6a8c" font-size="10" text-anchor="middle">台账 + manifest + 遥测</text>
+    <line x1="150" y1="242" x2="186" y2="242" stroke="rgba(91,228,155,.5)" stroke-width="1.5" marker-end="url(#caArrG)"/>
+    <rect x="190" y="216" width="434" height="52" rx="12" fill="rgba(167,139,255,.06)" stroke="rgba(167,139,255,.4)"/>
+    <text x="407" y="237" fill="#a78bff" font-size="12" text-anchor="middle" font-weight="700">21 项确定性闸门全过</text>
+    <text x="407" y="255" fill="#5c6a8c" font-size="10" text-anchor="middle">数字从产物机器提取 · 证据逐条 sha256 · 引用逐条核验</text>
+    <line x1="624" y1="242" x2="660" y2="242" stroke="rgba(91,228,155,.5)" stroke-width="1.5" marker-end="url(#caArrG)"/>
+    <rect x="664" y="216" width="118" height="52" rx="12" fill="rgba(62,230,214,.07)" stroke="rgba(62,230,214,.5)"/>
+    <text x="723" y="237" fill="#3ee6d6" font-size="12" text-anchor="middle" font-weight="700">链式 hash 归档</text>
+    <text x="723" y="255" fill="#5c6a8c" font-size="10" text-anchor="middle">内容指纹串链封存</text>
+    <line x1="782" y1="242" x2="818" y2="242" stroke="rgba(91,228,155,.6)" stroke-width="1.5" marker-end="url(#caArrG)"/>
+    <rect x="822" y="216" width="58" height="52" rx="12" fill="rgba(91,228,155,.14)" stroke="#5be49b"/>
+    <text x="851" y="246" fill="#5be49b" font-size="13" text-anchor="middle" font-weight="900">PASS</text>
+  </svg>
+  <p class="tech-only" style="font-size:11.5px;color:var(--mut);margin-top:8px;font-family:var(--mono)">技术锚点：G-13 check_freshness（freshness_hours 2h + unexpected==0）· G-14 report_refs 存在+非空+sha256 · G-15 源产物 sha256 重算 + report_extract 报告数字提取 · attestation.json 链式 hash · attest.py 离线复核</p>
+  </div></div><div class="xpane" id="xp-case-2">
+  <div class="tbl-wrap"><table>
+    <tr><th>实证项</th><th>结果</th></tr>
+    <tr><td>PROJ-179 资产减值全量回归</td><td><span class="tag pass">54 用例全绿收口</span> 产出 V4 完整版报告（操作内容 + 截图实录）</td></tr>
+    <tr><td>全量执行基线</td><td><span class="tag pass">63 tests</span> 全量执行基线建立（机器执行跑通）</td></tr>
+    <tr><td>攻防复核（attack_recheck）</td><td><span class="tag pass">14/14</span> 五类攻击样本全部检出</td></tr>
+  </table></div>
+  <div class="biz-note"><span class="bi">💼</span><div><b>业务解读：</b>同一个 PROJ-179，当年靠「信人」出了假绿，今天靠「信机器」做到 54 用例全绿且每个数字可被第三方复核——差别不在人更仔细，而在流程不再给「假绿」留位置。</div></div>
+</div></div></section>
+
+<!-- ================= 架构 ================= -->
+<div class="part-div"><span>PART 02 · 架构与实现 <b>ARCHITECTURE</b></span></div>
+
+<section id="arch" class="reveal">
+  <div class="ghost-num">04</div>
+  <div class="sec-kicker">Architecture</div>
+  <h2 class="sec-title">总体架构设计</h2>
+  <p class="sec-sub">三层分工与端到端数据流。硬性环境约束：Python 3.6 兼容 · Python 层零额外三方包 · 单机单会话 · DB 通道只读 · 知识库 00~03 章只读 · 配置脱敏。</p>
+  <div class="biz-note"><span class="bi">💼</span><div><b>业务解读：</b>分工逻辑一句话——重复劳动全交给机器，AI 只做判断且必须过机器验收，质量红线由机器把关。Python 层零额外三方包、单机可跑，意味着引入成本低、不增加运维与供应链风险。</div></div>
+
+  <div class="layers">
+    <div class="layer l1"><div class="lico">⚙️</div><div class="lt">机械层</div><p>解析 / 生成 / 执行 / 核验 / 报告的确定性环节，全部脚本完成。</p><span class="lk">parse_docs · gen_cases · runner · verify_data · gen_report → 退出码 + 结构化产物</span></div>
+    <div class="layer l2"><div class="lico">🧠</div><div class="lt">语义层</div><p>AI 只做判断与加工：断言设计、失败归因、覆盖判定、定位建议。</p><span class="lk">AI-01 / AI-02 / AI-03 三段式 → 确定性验收器 + gated_at 戳</span></div>
+    <div class="layer l3"><div class="lico">🚧</div><div class="lt">闸门层</div><p>21 项确定性检查，任一非零退出即终止流水线并禁止归档。</p><span class="lk">verify_report · attest · lint_spec · precheck · postcheck</span></div>
+  </div><div class="xdeck">
+<div class="xtabs"><button class="xtab on" data-pane="xp-arch-0">分层架构</button><button class="xtab" data-pane="xp-arch-1">数据流</button><button class="xtab" data-pane="xp-arch-2">目录结构</button></div><div class="xpane show" id="xp-arch-0">
+  <div class="card" style="padding:16px">
+  <svg class="arch-svg" viewBox="0 0 1180 660" role="img" aria-label="E2E-ATW 分层架构图">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M0,0L10,5L0,10z" fill="rgba(62,230,214,.6)"/></marker>
+      <linearGradient id="gBlue" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5b9dff"/><stop offset="1" stop-color="#2f5fb8"/></linearGradient>
+      <linearGradient id="gPurple" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a78bff"/><stop offset="1" stop-color="#6f52c9"/></linearGradient>
+      <linearGradient id="gRed" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff7070"/><stop offset="1" stop-color="#b03a3a"/></linearGradient>
+    </defs>
+    <!-- 三层泳道 -->
+    <rect class="lane" x="130" y="52" width="930" height="120" rx="14"/>
+    <rect class="lane" x="130" y="232" width="930" height="158" rx="14"/>
+    <rect class="lane" x="130" y="430" width="930" height="150" rx="14"/>
+    <text class="lane-t" x="22" y="106">五源输入</text><text class="lane-s" x="22" y="126">L1 材料层</text>
+    <text class="lane-t" x="22" y="302">八阶段</text><text class="lane-t" x="22" y="320">流水线</text><text class="lane-s" x="22" y="340">L2 执行层</text>
+    <text class="lane-t" x="22" y="498">产物与</text><text class="lane-t" x="22" y="516">复核</text><text class="lane-s" x="22" y="536">L3 产出层</text>
+    <!-- 输入层节点 -->
+    <g class="nd in"><rect x="142" y="80" width="156" height="64" rx="12"/><text class="t1" x="220" y="108" text-anchor="middle">需求文档</text><text class="t2" x="220" y="126" text-anchor="middle">docs</text></g>
+    <g class="nd in"><rect x="328" y="80" width="156" height="64" rx="12"/><text class="t1" x="406" y="108" text-anchor="middle">规格说明书</text><text class="t2" x="406" y="126" text-anchor="middle">specs</text></g>
+    <g class="nd in"><rect x="514" y="80" width="156" height="64" rx="12"/><text class="t1" x="592" y="108" text-anchor="middle">代码仓库</text><text class="t2" x="592" y="126" text-anchor="middle">code</text></g>
+    <g class="nd in"><rect x="700" y="80" width="156" height="64" rx="12"/><text class="t1" x="778" y="108" text-anchor="middle">数据口径</text><text class="t2" x="778" y="126" text-anchor="middle">sql</text></g>
+    <g class="nd in"><rect x="886" y="80" width="156" height="64" rx="12"/><text class="t1" x="964" y="108" text-anchor="middle">业务知识库</text><text class="t2" x="964" y="126" text-anchor="middle">kb</text></g>
+    <!-- 输入 → 流水线总线 -->
+    <line class="wire" x1="220" y1="144" x2="220" y2="196"/>
+    <line class="wire" x1="406" y1="144" x2="406" y2="196"/>
+    <line class="wire" x1="592" y1="144" x2="592" y2="196"/>
+    <line class="wire" x1="778" y1="144" x2="778" y2="196"/>
+    <line class="wire" x1="964" y1="144" x2="964" y2="196"/>
+    <line class="flow" x1="142" y1="196" x2="1042" y2="196"/>
+    <line class="flow" x1="187" y1="196" x2="187" y2="266"/>
+    <!-- 流水线节点 -->
+    <g class="nd pl"><rect x="140" y="268" width="94" height="84" rx="12"/><text class="t1" x="187" y="296" text-anchor="middle">解析</text><text class="t2" x="187" y="316" text-anchor="middle">parse_docs</text></g>
+    <g class="nd pl"><rect x="257" y="268" width="94" height="84" rx="12"/><text class="t1" x="304" y="296" text-anchor="middle">用例生成</text><text class="t2" x="304" y="316" text-anchor="middle">gen_cases</text></g>
+    <g class="nd pl gate"><rect x="373" y="268" width="94" height="84" rx="12"/><text class="t1" x="420" y="296" text-anchor="middle">环境预检</text><text class="t2" x="420" y="316" text-anchor="middle">precheck</text><rect x="435" y="258" width="32" height="15" rx="4" fill="#a78bff"/><text class="gate-flag" x="451" y="269" text-anchor="middle" fill="#0a0e14">GATE</text></g>
+    <g class="nd pl"><rect x="490" y="268" width="94" height="84" rx="12"/><text class="t1" x="537" y="296" text-anchor="middle">读链执行</text><text class="t2" x="537" y="316" text-anchor="middle">runner</text></g>
+    <g class="nd pl"><rect x="606" y="268" width="94" height="84" rx="12"/><text class="t1" x="653" y="296" text-anchor="middle">写链路</text><text class="t2" x="653" y="316" text-anchor="middle">runner·write</text></g>
+    <g class="nd pl"><rect x="722" y="268" width="94" height="84" rx="12"/><text class="t1" x="769" y="296" text-anchor="middle">数据实证</text><text class="t2" x="769" y="316" text-anchor="middle">verify_data</text></g>
+    <g class="nd pl gate"><rect x="839" y="268" width="94" height="84" rx="12"/><text class="t1" x="886" y="296" text-anchor="middle">缺陷分类</text><text class="t2" x="886" y="316" text-anchor="middle">defect_classify</text><rect x="901" y="258" width="32" height="15" rx="4" fill="#a78bff"/><text class="gate-flag" x="917" y="269" text-anchor="middle" fill="#0a0e14">GATE</text></g>
+    <g class="nd pl gate"><rect x="956" y="268" width="94" height="84" rx="12"/><text class="t1" x="1003" y="296" text-anchor="middle">报告+闸门</text><text class="t2" x="1003" y="316" text-anchor="middle">report_with_gate</text><rect x="1018" y="258" width="32" height="15" rx="4" fill="#a78bff"/><text class="gate-flag" x="1034" y="269" text-anchor="middle" fill="#0a0e14">GATE</text></g>
+    <!-- 流水线横向箭头 -->
+    <line class="solid" x1="234" y1="310" x2="255" y2="310" marker-end="url(#arr)"/>
+    <line class="solid" x1="351" y1="310" x2="371" y2="310" marker-end="url(#arr)"/>
+    <line class="solid" x1="467" y1="310" x2="488" y2="310" marker-end="url(#arr)"/>
+    <line class="solid" x1="584" y1="310" x2="604" y2="310" marker-end="url(#arr)"/>
+    <line class="solid" x1="700" y1="310" x2="720" y2="310" marker-end="url(#arr)"/>
+    <line class="solid" x1="816" y1="310" x2="837" y2="310" marker-end="url(#arr)"/>
+    <line class="solid" x1="933" y1="310" x2="954" y2="310" marker-end="url(#arr)"/>
+    <!-- 流水线 → 产物映射 -->
+    <path class="flow" d="M653,352 C653,412 240,428 240,470"/>
+    <path class="flow" d="M769,352 C769,412 467,428 467,470"/>
+    <path class="flow" d="M886,352 C886,412 500,428 500,470"/>
+    <path class="flow" d="M1003,352 C1003,412 694,428 694,470"/>
+    <path class="flow" d="M1003,352 C1003,412 921,428 921,470"/>
+    <!-- 产出节点 -->
+    <g class="nd out"><rect x="140" y="474" width="200" height="72" rx="12"/><text class="t1" x="240" y="500" text-anchor="middle">run 目录</text><text class="t2" x="240" y="518" text-anchor="middle">台账 + manifest + 遥测</text></g>
+    <g class="nd out"><rect x="367" y="474" width="200" height="72" rx="12"/><text class="t1" x="467" y="500" text-anchor="middle">数据实证 + 缺陷分类</text><text class="t2" x="467" y="518" text-anchor="middle">verify / classify_result</text></g>
+    <g class="nd out"><rect x="594" y="474" width="200" height="72" rx="12"/><text class="t1" x="694" y="500" text-anchor="middle">核验报告（MD + HTML）</text><text class="t2" x="694" y="518" text-anchor="middle">+ attestation.json 声明</text></g>
+    <g class="nd out"><rect x="821" y="474" width="200" height="72" rx="12"/><text class="t1" x="921" y="500" text-anchor="middle">attest.py 离线复核</text><text class="t2" x="921" y="518" text-anchor="middle">文件 / 链 / claims 三重复核</text></g>
+    <!-- 右侧三层分工色带 -->
+    <rect class="band" x="1084" y="52" width="64" height="120" rx="10" fill="url(#gBlue)" opacity=".85"/>
+    <rect class="band" x="1084" y="232" width="64" height="158" rx="10" fill="url(#gPurple)" opacity=".85"/>
+    <rect class="band" x="1084" y="430" width="64" height="150" rx="10" fill="url(#gRed)" opacity=".85"/>
+    <text class="band-t" x="1116" y="104" text-anchor="middle">机械层</text><text class="band-s" x="1116" y="122" text-anchor="middle">确定性脚本</text>
+    <text class="band-t" x="1116" y="300" text-anchor="middle">语义层</text><text class="band-s" x="1116" y="318" text-anchor="middle">AI 加工</text>
+    <text class="band-t" x="1116" y="496" text-anchor="middle">闸门层</text><text class="band-s" x="1116" y="514" text-anchor="middle">机器阻断</text>
+    <!-- 图例 -->
+    <rect x="140" y="604" width="16" height="16" rx="4" fill="rgba(91,157,255,.25)" stroke="rgba(91,157,255,.6)"/><text class="lg-t" x="162" y="616">五源输入</text>
+    <rect x="310" y="604" width="16" height="16" rx="4" fill="rgba(62,230,214,.2)" stroke="rgba(62,230,214,.6)"/><text class="lg-t" x="332" y="616">流水线阶段</text>
+    <rect x="480" y="604" width="16" height="16" rx="4" fill="rgba(167,139,255,.15)" stroke="rgba(167,139,255,.7)" stroke-dasharray="4 3"/><text class="lg-t" x="502" y="616">gate 强约束</text>
+    <rect x="650" y="604" width="16" height="16" rx="4" fill="rgba(91,228,155,.2)" stroke="rgba(91,228,155,.6)"/><text class="lg-t" x="672" y="616">产物与复核</text>
+    <line class="flow" x1="820" y1="612" x2="860" y2="612"/><text class="lg-t" x="868" y="616">数据流向（流动动画）</text>
+  </svg>
+  </div></div><div class="xpane" id="xp-arch-1">
+  <div class="card">
+    <div class="flowmap">
+      <div class="frow"><span class="fnode src">五源输入</span><span class="farrow"></span><span class="fnode">parse_result.json</span><span class="farrow"></span><span class="fnode">cases + tests/*.spec.ts</span></div>
+      <div class="fdown"></div>
+      <div class="frow"><span class="fnode gate">precheck ⛨</span><span class="farrow"></span><span class="fnode gate">lint_spec ⛨</span><span class="farrow"></span><span class="fnode">runner probe→read→write</span></div>
+      <div class="fdown"></div>
+      <div class="frow"><span class="fnode">run_results/run_&lt;ts&gt;/</span><span class="farrow"></span><span class="fnode">verify_data 实证</span><span class="farrow"></span><span class="fnode gate">defect_classify ⛨</span></div>
+      <div class="fdown"></div>
+      <div class="frow"><span class="fnode gate">report_with_gate ⛨</span><span class="farrow"></span><span class="fnode out">核验报告.md/.html + attestation</span><span class="farrow"></span><span class="fnode out">attest.py 离线复核 ✓</span></div>
+    </div>
+  </div></div><div class="xpane" id="xp-arch-2">
+  <pre>E2E-ATW/
+├── bin/         # 33 个可执行脚本：阶段 CLI + 验收器 + 离线复核器 + P 线桥接器
+├── lib/         # schemas / manifest / ai_gate / schema_migrate / atw_common
+├── config/      # config.json（运行配置）/ contract.json（规则单一来源：21 闸门+5 lint）/ secrets
+├── knowledge/   # 框架层五库 + platforms/ 平台层 + drafts/
+├── templates/   # 复盘模板 / helpers 模板 / 手册骨架
+├── projects/    # 项目工作区（每需求一目录，run_results/run_&lt;ts&gt;/）
+├── docs/        # 设计实现文档：实现说明 / 优化实施手册 / 全面优化方案 / 工具能力分析 / 五问整改方案
+├── SKILL.md     # 技能契约
+└── 交付回检包.md # 交付验收证据</pre>
+</div></div></section>
+
+<!-- ================= 流水线 ================= -->
+<section id="pipeline" class="reveal">
+  <div class="ghost-num">05</div>
+  <div class="sec-kicker">FR-02 · Pipeline Engine</div>
+  <h2 class="sec-title">流水线引擎：唯一入口 + 声明式配置</h2>
+  <p class="sec-sub"><code>python3 bin/atw.py --project &lt;P&gt;</code> 串行执行八阶段。cache_key 内容摘要判定缓存跳过；上游变化按 PRODUCER_STAGE 级联失效下游；gate 失败立即终止；<code>--from-stage</code> 断点续跑。<b style="color:var(--cyan)">点击任一节点查看阶段详情。</b></p>
+  <div class="biz-note"><span class="bi">💼</span><div><b>业务解读：</b>全流程只有一个入口、顺序固定，任一质量闸门不过就当场终止——从机制上排除了「跳过麻烦步骤直接出报告」的可能，管理者不必担心流程被绕行。</div></div>
+
+  <div class="pipe-wrap">
+    <div class="pipe-scroll"><div class="pipe-track" id="pipeTrack"></div></div>
+    <div class="pipe-legend">
+      <span><span class="lg"></span>普通阶段</span>
+      <span><span class="lg gate"></span>gate 强约束阶段（失败即终止）</span>
+      <span>▸ 虚线流动 = 数据流向</span>
+    </div>
+  </div>
+  <div class="stage-detail" id="stageDetail"></div>
+</section>
+
+<!-- ================= FR-01 ================= -->
+<section id="trust" class="reveal">
+  <div class="ghost-num">06</div>
+  <div class="sec-kicker">FR-01 / FR-03 / FR-04 / ai_gate · Trust Chain</div>
+  <h2 class="sec-title">可信链深潜：可信基座 · SSOT · 验收戳</h2><div class="xdeck">
+<div class="xtabs"><button class="xtab on" data-pane="xp-trust-0">可信基座</button><button class="xtab" data-pane="xp-trust-1">SSOT 完整性链</button><button class="xtab" data-pane="xp-trust-2">attest 离线复核</button><button class="xtab" data-pane="xp-trust-3">验收戳</button><button class="xtab" data-pane="xp-trust-4">SKILL 契约</button></div><div class="xpane show" id="xp-trust-0">
+  <p class="sec-sub">产物写入带 schema 版本与机器校验，结构漂移在读写边界即失败；旧版本产物自动迁移。自研校验器（禁 jsonschema，Python 层零额外三方包，Python 3.6 兼容）。</p>
+  <div class="biz-note"><span class="bi">💼</span><div><b>业务解读：</b>所有中间结果都是带格式校验的存档文件：写错格式当场报错，旧版本自动升级。意味着交接与归档多年后仍可读、可验，不会因格式漂移变成死数据。</div></div>
+  <div class="layers" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">
+    <div class="layer l1"><div class="lico">📋</div><div class="lt">Schema 注册表 · 31 项</div><p>执行产物 run_result v2、核验产物 verify_result / data_ledger v2、报告产物 attestation、AI 产物 assert_draft / semantic_verdict、扩展产物 impact_set / circuit_checkpoint 等九组。</p><span class="lk">lib/schemas.py · register() / validate() / CLI 自检</span></div>
+    <div class="layer l2"><div class="lico">💾</div><div class="lt">写入 / 读取通道</div><p>save_json_typed 校验通过后原子写（临时文件 + rename）；load_json_typed 版本不匹配自动迁移，校验失败抛错，不再静默容错。</p><span class="lk">lib/atw_common.py L424 / L439 / atomic_write L405</span></div>
+    <div class="layer l3"><div class="lico">🔄</div><div class="lt">迁移器</div><p>MIGRATIONS 注册版本迁移函数，逐版本链式迁移：run_result v1→v2 补 kpi/slow_specs，data_ledger v1→v2 补 worker/shards。</p><span class="lk">lib/schema_migrate.py L43</span></div>
+  </div></div><div class="xpane" id="xp-trust-1">
+  <p class="sec-sub" style="margin-top:-6px">产物与 run 同生共死（单一事实源）+ 完整性可离线复核。威胁模型：防意外陈旧组合、事后改数、AI 幻觉结论、交付物替换。</p>
+  <div class="biz-note"><span class="bi">💼</span><div><b>业务解读：</b>意味着报告里的每个数字都能被第三方用独立工具复核，事后改一个数字、删一个文件都会「断链」并精确定位——从机制上杜绝「全绿但不可信」。</div></div>
+  <div class="card">
+    <h3>链式 hash 算法</h3>
+    <pre>chain_hash = sha256(prev_chain + artifact.sha256 + stage)
+
+manifest.json = { artifacts: [{ path, sha256, producer, stage, chain_hash }] }（有序登记）
+add_artifact：同 path 同 sha256 跳过（幂等）；同 path 不同 sha256 原位替换并重算后继链</pre>
+  </div></div><div class="xpane" id="xp-trust-2">
+  <div class="tbl-wrap"><table>
+    <tr><th>复核</th><th>判定逻辑</th></tr>
+    <tr><td><b style="color:var(--cyan)">① 文件完整性</b></td><td>每条 artifact 重算文件 sha256 与登记一致；缺失即 FAIL 并定位条目号</td></tr>
+    <tr><td><b style="color:var(--cyan)">② 链完整性</b></td><td>逐条重算 chain_hash；增删换序 / 前置被改即「chain_hash 断裂」定位条目</td></tr>
+    <tr><td><b style="color:var(--cyan)">③ claims 对账</b></td><td>每条 claim 从源产物重算期望值比对（源产物被替换/陈旧检出）+ 报告文本正则提取数字对比（虚报检出）</td></tr>
+  </table></div></div><div class="xpane" id="xp-trust-3">
+  <p class="sec-sub" style="margin-top:-6px">AI 产物本质是外部写入的文件，天然不可信。统一「脚本备料 → AI 加工 draft → 脚本验收入库」三段式，gated_at 戳防篡改与漂移。</p>
+  <div class="biz-note"><span class="bi">💼</span><div><b>业务解读：</b>对「AI 写的结论能不能信」的正式回答：不能盲信，所以所有 AI 产出必须过机器验收盖戳，没戳的内容下游一律拒收。AI 是助手，不是签发人。</div></div>
+  <div class="card"><div class="flowmap">
+    <div class="frow"><span class="fnode src">备料脚本 --emit-*-briefs</span><span class="farrow"></span><span class="fnode">cases/&lt;briefs&gt;/（带 schema + 判定指引）</span></div>
+    <div class="fdown"></div>
+    <div class="frow"><span class="fnode">AI 语义加工 → drafts/*.json</span><span class="farrow"></span><span class="fnode gate">验收脚本 --apply / --import ⛨</span><span class="farrow"></span><span class="fnode out">write_stamped 打戳 ✓</span></div>
+    <div class="fdown"></div>
+    <div class="frow"><span class="fnode">下游消费方</span><span class="farrow"></span><span class="fnode gate">is_gated 校验 ⛨</span><span class="farrow"></span><span class="fnode" style="border-color:rgba(255,112,112,.5);color:var(--red)">无戳拒绝 ✗</span></div>
+  </div></div>
+  <div class="tbl-wrap" style="margin-top:16px"><table>
+    <tr><th>接口（lib/ai_gate.py，57 行）</th><th>语义</th></tr>
+    <tr><td>content_hash(obj)</td><td>去戳后内容稳定序列化的 sha256 前 16 位</td></tr>
+    <tr><td>stamp(draft, ts)</td><td>打戳 {gated_at, draft_hash}，幂等</td></tr>
+    <tr><td>is_gated(draft)</td><td>gated_at 存在且 hash 等于当前重算值（防戳后篡改）</td></tr>
+    <tr><td>write_stamped(...)</td><td>写回带戳 draft（UTF-8，indent=2）</td></tr>
+  </table></div>
+  <p style="font-size:13px;color:var(--dim);margin-top:12px">三个落地点：AI-01 apply_assertions.py（断言验收）· AI-02 triage_pack.py --import（复盘草稿验收）· AI-03 coverage_semantic.py --apply（语义判定验收）。</p></div><div class="xpane" id="xp-trust-4">
+  <div class="layers" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
+    <div class="layer l1"><div class="lico">📜</div><div class="lt">机器契约</div><p>流水线强制顺序 / schema 清单与验收戳 / 21 闸门总表 / AI 产物 schema 目录 / 预算与禁令</p></div>
+    <div class="layer l2"><div class="lico">🧭</div><div class="lt">AI 操作手册</div><p>八阶段三段式：机械环节（AI 不要重做）→ AI 任务（brief→draft→验收）→ 验收与回退</p></div>
+    <div class="layer l3"><div class="lico">⚖️</div><div class="lt">语义判断指引</div><p>断言强弱标准 / 根因分类决策树（env→…→biz）/ 覆盖四档判定 / 豁免登记格式</p></div>
+    <div class="layer l1"><div class="lico">⛓️</div><div class="lt">硬性约束 15 条</div><p>每条标注 [闸门]/[半闸门]/[AI 判断] + 对应脚本；15 个脚本引用存在性 15/15</p></div>
+  </div></div></div></section>
+
+<!-- ================= 能力矩阵 ================= -->
+<section id="capabilities" class="reveal">
+  <div class="ghost-num">★</div>
+  <div class="sec-kicker">Capabilities · Tool Panorama</div>
+  <h2 class="sec-title">能力矩阵：工具全景</h2>
+  <p class="sec-sub">33 脚本 × 5 核心库 × 外部生态，全部带源码锚点；可独立调用，亦可串联为八阶段流水线（见上章交互图）。</p><div class="xdeck">
+<div class="xtabs"><button class="xtab on" data-pane="xp-capabilities-0">33 脚本分组</button><button class="xtab" data-pane="xp-capabilities-1">5 核心库</button><button class="xtab" data-pane="xp-capabilities-2">外部生态</button></div><div class="xpane show" id="xp-capabilities-0">
+  <div class="layers" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">
+    <div class="layer l1"><div class="lico">📥</div><div class="lt">解析与生成 ×6</div><p>parse_docs / gen_cases / gen_specs / lint_spec / record_bootstrap / distill</p><span class="lk">bin/parse_docs.py 等 · 五源→用例机械转化</span></div>
+    <div class="layer l2"><div class="lico">▶️</div><div class="lt">执行与控制 ×7</div><p>runner / precheck / postcheck / resume / retry / circuit / pool</p><span class="lk">bin/runner.py 等 · 探针+熔断+LPT 调度</span></div>
+    <div class="layer l3"><div class="lico">🔍</div><div class="lt">核验与归因 ×6</div><p>verify_data / defect_classify / attest / verify_report / extract / fingerprint</p><span class="lk">bin/verify_data.py 等 · 数据实证+可信链</span></div>
+    <div class="layer l1"><div class="lico">📊</div><div class="lt">报告与交付 ×5</div><p>gen_report / report_with_gate / delivery / archive / package</p><span class="lk">bin/gen_report.py 等 · HTML+MD+zip 自包含</span></div>
+    <div class="layer l2"><div class="lico">🧠</div><div class="lt">AI 三段式 ×3</div><p>ai_prepare / ai_gate / ai_review：备料→加工→机器验收打戳</p><span class="lk">bin/ai_*.py · draft 无 gated_at 戳不得消费</span></div>
+    <div class="layer l3"><div class="lico">🌉</div><div class="lt">专项桥接 ×2</div><p>depr_bridge / link_topology：折旧 R 引擎 + 写链链路核验</p><span class="lk">bin/depr_bridge.py 等 · P 线配套</span></div>
+  </div></div><div class="xpane" id="xp-capabilities-1">
+  <details class="fq tech-only"><summary>展开：5 个核心库公共能力明细表</summary><div class="tbl-wrap"><table>
+    <tr><th style="width:180px">库</th><th>职责</th></tr>
+    <tr><td><code>lib/atw_common.py</code></td><td>配置展开（${TOOL_ROOT}/${SECRETS}）、路径解析、日志、退出码规范</td></tr>
+    <tr><td><code>lib/contract.py</code></td><td>contract.json 单一规则来源加载与校验（21 闸门/词表/阈值）</td></tr>
+    <tr><td><code>lib/schema.py</code></td><td>31 项 Schema 注册与产物格式校验</td></tr>
+    <tr><td><code>lib/kb_loader.py</code></td><td>三层知识库加载（00 通用 / 01 项目 / 02 页面 / 03 经验）</td></tr>
+    <tr><td><code>lib/chain_hash.py</code></td><td>链式 hash 与完整性链计算（产物篡改可检出）</td></tr>
+  </table></div></details></div><div class="xpane" id="xp-capabilities-2">
+  <ul class="dot">
+    <li><b>tc-toolkit</b>：17 字段业务用例 CSV 作为 L2 输入，经 P1 gen_specs 机械转化为 spec.ts</li>
+    <li><b>depr-check-toolkit R 引擎</b>：折旧专项反向验证，P4 depr_bridge subprocess 接入 + 内容级 FAILED 计数</li>
+    <li><b>Playwright</b>：浏览器执行层，读/写链路统一 spec.ts 契约</li>
+    <li><b>DB 只读通道</b>：数据实证与链路核验的 SQL 执行（只读账号 + 受控删除白名单）</li>
+  </ul>
+</div></div></section>
+
+<!-- ================= 快速上手 ================= -->
+<section id="quickstart" class="reveal">
+  <div class="ghost-num">⚡</div>
+  <div class="sec-kicker">Quickstart · 5-Minute Bootstrap</div>
+  <h2 class="sec-title">快速上手：五分钟跑通最小闭环</h2>
+  <p class="sec-sub">任意新需求（如 PROJ-180）只需准备五源输入，按以下步骤即可产出可归档核验报告。硬性约束：Python 3.6 兼容 · Python 层零额外三方包 · 单机单会话 · DB 只读。</p><div class="xdeck">
+<div class="xtabs"><button class="xtab on" data-pane="xp-quickstart-0">① 初始化</button><button class="xtab" data-pane="xp-quickstart-1">② 生成用例</button><button class="xtab" data-pane="xp-quickstart-2">③ 预检执行</button><button class="xtab" data-pane="xp-quickstart-3">④ 实证归因</button><button class="xtab" data-pane="xp-quickstart-4">⑤ 报告归档</button></div><div class="xpane show" id="xp-quickstart-0">
+  <pre>$ python bin/init_project.py --req PROJ-180 --name "资产变更" \\
+    --docs docs/ --specs specs/ --code src/ --sql sql/ --kb knowledge/
+✓ 生成 project.json / cases/ / tests/ / data/ / reports/ / config/
+✓ G-01 结构完整闸通过</pre></div><div class="xpane" id="xp-quickstart-1">
+  <pre>$ python bin/parse_docs.py          # 五源 → parse_result.json
+$ python bin/gen_cases.py           # → cases/*.csv + tests/*.spec.ts + coverage.json
+$ python bin/lint_spec.py           # 裸 .el- 定位等 fail 级规则阻断
+✓ G-02/G-10 闸通过</pre></div><div class="xpane" id="xp-quickstart-2">
+  <pre>$ python bin/precheck.py            # 环境/配置/依赖（gate）
+$ python bin/runner.py              # 读链路：探针→执行→台账+manifest+遥测
+$ python bin/runner.py --write      # 写链路：数据池+反向台账清除
+✓ G-13 时效 / G-11 零遗留闸通过</pre></div><div class="xpane" id="xp-quickstart-3">
+  <pre>$ python bin/verify_data.py         # 存在性/多源/字段链/规则溯源
+$ python bin/defect_classify.py     # env/product/flaky/unknown（gate）
+✓ G-15 claims 对账通过</pre></div><div class="xpane" id="xp-quickstart-4">
+  <pre>$ python bin/report_with_gate.py    # 核验报告 + attestation.json + 21 闸门
+✓ 全绿 → reports/ 归档；任一闸门非零 → 终止且禁止归档</pre>
+</div></div></section>
+
+<!-- ================= 模块总览 ================= -->
+<div class="part-div"><span>PART 03 · 模块与专项 <b>MODULES</b></span></div>
+
+<section id="modules" class="reveal">
+  <div class="ghost-num">07</div>
+  <div class="sec-kicker">Modules</div>
+  <h2 class="sec-title">八大模块 + P 专项线 · 46 项任务</h2>
+  <p class="sec-sub">六波次 46 项任务，FR×4 功能组已在架构章展开；其余 42 项按模块筛选，<b style="color:var(--txt)">点击任务行展开五段式明细</b>（含源码锚点）。</p>
+  <div class="mod-tabs" id="modTabs"></div>
+  <div class="task-grid" id="taskGrid"></div>
+</section>
+
+<!-- ================= P 线 ================= -->
+<section id="pline" class="reveal">
+  <div class="ghost-num">08</div>
+  <div class="sec-kicker">Special Bridge · 20261016</div>
+  <h2 class="sec-title">专项桥接 P 线：业务用例驱动 + 报告可读性 + 代码源覆盖 + 折旧专项</h2>
+  <p class="sec-sub">tc-toolkit 业务用例 · 链路拓扑核验 · depr-check R 引擎接入八步流程，配套 G-17~G-21 五门新闸。</p>
+  <div class="layers" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr))">
+    <div class="layer l1"><div class="lico">🔀</div><div class="lt">P1 gen_specs 转化器</div><p>L2 业务用例（17 字段 CSV）→ spec.ts 机械转化：档位启发推导 + 句式识别装配；产物隔离目录 + 转化台账零丢弃。</p><span class="lk">bin/gen_specs.py · conversion_ledger.json · G-17/G-18 闸门</span></div>
+    <div class="layer l1"><div class="lico">📖</div><div class="lt">P1-A/B 报告可读性</div><p>摘要卡（一页看懂）+ 术语对照表 + 符号图例置顶；用例业务三段式（干什么/核验什么/断言什么）；截图清单与图注（红框+角标①标注）+ 无截图用例文字示意块。</p><span class="lk">bin/annotate_shots.py · G-20 三段式截图标注闸门</span></div>
+    <div class="layer l2"><div class="lico">🧬</div><div class="lt">P1-C 代码驱动补用例</div><p>scope_probe 可选阶段扫描代码改动 → AI 补全 code_test_points → gen_cases 双源合并（来源列记 CP-xxx）。</p><span class="lk">bin/scope_probe.py · G-21 代码源覆盖矩阵（CP 全覆盖+P0 缺口阻断）</span></div>
+    <div class="layer l2"><div class="lico">🔗</div><div class="lt">P2 postcheck 链路核验</div><p>写链产出数据业务链路逐环反向验证：link_topology 声明式锚点 + 环 SQL 期望；锚点取值双形态归一。</p><span class="lk">bin/postcheck.py · project.json link_topology</span></div>
+    <div class="layer l3"><div class="lico">📉</div><div class="lt">P4 depr_bridge 折旧桥接</div><p>代表性公司四维度自动选取 + R 引擎 subprocess 接入 + 计提回归骨架；内容级 FAILED 计数拦截假绿灯。</p><span class="lk">bin/depr_bridge.py · depr_companies.json · G-19 闸门</span></div>
+    <div class="layer l3"><div class="lico">🧷</div><div class="lt">执行链聚合（20261016）</div><p>报告与闸门改 read/write 双圈聚合口径（链窗口默认 6h）：三段式/失败明细/截图全链合并，G-13/G-20 链聚合任一失败禁止归档。</p><span class="lk">lib/atw_common.py chain_run_dirs/chain_exec · SKILL.md v2.2</span></div>
+  </div>
+  <details class="fq"><summary>展开：实证成绩（2026-10-13 首轮实测）</summary><div class="tbl-wrap"></div></details>
+</section>
+
+<!-- ================= 闸门 ================= -->
+<div class="part-div"><span>PART 04 · 体系与交付 <b>QUALITY</b></span></div>
+
+<section id="gates" class="reveal">
+  <div class="ghost-num">09</div>
+  <div class="sec-kicker">Gates · CT-01</div>
+  <h2 class="sec-title">闸门体系 · 21 项确定性检查</h2>
+  <p class="sec-sub">来源 config/contract.json gate 段（单一规则来源），<code>--print-checks</code> 输出为权威清单（禁止手抄）。任一闸门非零退出即禁止归档。</p>
+  <div class="biz-note"><span class="bi">💼</span><div><b>业务解读：</b>相当于出厂前的 21 道质检工序，全部机器执行、标准写死在一处（contract.json）。规则口径集中管理，不会出现「文档一套、执行一套」。</div></div>
+  <div class="gate-head">
+    <div class="ring" id="gateRing">
+      <svg width="110" height="110"><defs><linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#3ee6d6"/><stop offset="100%" stop-color="#a78bff"/></linearGradient></defs>
+      <circle class="rc-bg" cx="55" cy="55" r="50"/><circle class="rc-fg" id="ringFg" cx="55" cy="55" r="50"/></svg>
+      <div class="rtxt"><b>21</b><span>GATES</span></div>
+    </div>
+    <p style="font-size:13.5px;color:var(--dim);max-width:560px">G-01~G-21 注册表化，check 字段经 verify_report CHECK_FUNCS 映射到检查函数；词表、阈值、连续数等参数全部收敛于 contract.json，文档与代码零双份口径。G-17 用例格式 / G-18 转化完整性 / G-19 折旧后核验为 20261013 P 线配套新增；G-20 三段式截图标注（P1-B 报告可读性）/ G-21 代码源覆盖矩阵（P1-C）为 20261015/16 增补。</p>
+  </div>
+  <div class="gate-grid" id="gateGrid"></div>
+
+  <h4 class="blk">互动 · 闸门模拟器</h4>
+  <p style="font-size:13.5px;color:var(--dim);margin-bottom:14px">选择一类或多类「攻击」，看它在报告产出流水线上被哪道闸门拦下。四类攻击分别对应 attack_recheck 实测样本——五类攻击 14/14 全绿中与本节直接相关的四组拦截。</p>
+  <div class="gsim" id="gateSim">
+    <div class="gsim-atks" id="gsimAtks">
+      <div class="gsim-atk" data-a="A"><b>虚报数字</b><p>报告填了没执行的数（预期 100 → 999）</p><div class="gmap">拦截：G-15 claims 对账</div></div>
+      <div class="gsim-atk" data-a="B"><b>证据缺失</b><p>报告引用的证据文件根本不存在</p><div class="gmap">拦截：G-14 引用存在</div></div>
+      <div class="gsim-atk" data-a="C"><b>陈旧数据</b><p>拿历史 run 产物冒充本轮执行</p><div class="gmap">拦截：G-13 证据时效</div></div>
+      <div class="gsim-atk" data-a="D"><b>事后篡改</b><p>报告归档后改数 / 替换证据文件</p><div class="gmap">拦截：链式 hash + attest</div></div>
+    </div>
+    <div class="gsim-pipe" id="gsimPipe">
+      <div class="gsim-line"></div>
+      <div class="gsim-pkt" id="gsimPkt"></div>
+      <div class="gsim-nodes">
+        <div class="gsim-node" data-g=""><span class="gn">⚙️ 执行</span></div>
+        <div class="gsim-node" data-g=""><span class="gn">📝 报告生成</span></div>
+        <div class="gsim-node gate" data-g="G-13"><span class="gn">G-13<br>证据时效</span></div>
+        <div class="gsim-node gate" data-g="G-14"><span class="gn">G-14<br>引用存在</span></div>
+        <div class="gsim-node gate" data-g="G-15"><span class="gn">G-15<br>claims 对账</span></div>
+        <div class="gsim-node gate" data-g="HASH"><span class="gn">链式 hash<br>+ attest</span></div>
+        <div class="gsim-node end" data-g="ARCH"><span class="gn">🗄️ 归档</span></div>
+      </div>
+    </div>
+    <div class="atk-btns" style="margin-top:16px">
+      <button class="atk-btn on-red" id="gsimGo" type="button">⚔️ 发起攻击</button>
+      <button class="atk-btn" id="gsimReset" type="button">↩️ 重置</button>
+      <span style="font-size:12px;color:var(--mut);align-self:center">可多选，逐个演示；每类攻击都会停在自己的「天敌」闸门。</span>
+    </div>
+    <div class="gsim-log" id="gsimLog"><span class="lg-info">[待命] 选择上方攻击类型后点击「发起攻击」。四类攻击对应 attack_recheck 实测：14/14 全绿。</span></div>
+  </div>
+</section>
+
+<!-- ================= 攻击矩阵 ================= -->
+<section id="attack" class="reveal">
+  <div class="ghost-num">A–E</div>
+  <div class="sec-kicker">Attack Defense</div>
+  <h2 class="sec-title">攻击防御矩阵 · 五类攻击 14/14 全绿</h2>
+  <p class="sec-sub">bin/attack_recheck.py 可复跑复核器：构造最小新格式项目自证基线健康后，逐类攻击断言检出。悬停卡片查看扫描效果。</p>
+  <div class="biz-note"><span class="bi">💼</span><div><b>业务解读：</b>我们主动模拟了五种「作弊/出错」方式（旧数据冒充、改文件、虚报数字、编造证据、断言放水），结果是 14/14 全部被机器拦下。下方有可直接点击的攻防演示。</div></div>
+  <div class="attack-grid">
+    <div class="attack"><span class="scan"></span><div class="aid">A</div><div class="aname">陈旧数据</div><div class="adesc">run_at 改 3 天前；verify pass 10→3，旧产物冒充</div><div class="acatch">✓ G-13「已陈旧」+ attest 重算不一致</div></div>
+    <div class="attack"><span class="scan"></span><div class="aid">B</div><div class="aname">篡改产物</div><div class="adesc">unexpected 0→1；删除已登记 classify_result.json</div><div class="acatch">✓ attest「sha256 不一致」+「文件缺失」</div></div>
+    <div class="attack"><span class="scan"></span><div class="aid">C</div><div class="aname">数值虚报</div><div class="adesc">报告.md「预期 100」→「预期 999」</div><div class="acatch">✓ G-15「渲染数字不一致」+「虚报检出」</div></div>
+    <div class="attack"><span class="scan"></span><div class="aid">D</div><div class="aname">引用幻觉</div><div class="adesc">report_refs.json 追加不存在的 .png</div><div class="acatch">✓ G-14 FAIL</div></div>
+    <div class="attack"><span class="scan"></span><div class="aid">E</div><div class="aname">脱钩断言</div><div class="adesc">scope=write 全 exist 计划（无时间窗口）</div><div class="acatch">✓ verify_data exit 4 + plan_strength_fail</div></div>
+  </div>
+
+  <h4 class="blk">互动演示 · 「假绿」攻防对照</h4>
+  <div class="atk-demo" id="atkDemo">
+    <div class="atk-btns">
+      <button class="atk-btn on-red" data-s="attack" type="button">⚔️ 模拟攻击发生（改数 / 删证据）</button>
+      <button class="atk-btn" data-s="normal" type="button">↩️ 攻击发生前</button>
+      <span style="font-size:12px;color:var(--mut);align-self:center">同一份报告，两种命运：左边是传统人工报告，右边是 E2E-ATW 机制下的同一场景。</span>
+    </div>
+    <div class="atk-cols">
+      <div class="atk-col bad">
+        <h4>📄 传统人工报告</h4>
+        <ul>
+          <li data-t="结论：63 条用例全部通过 ✅" data-a="结论：63 条用例全部通过 ✅（实际被改为「预期 999」虚报）">结论：63 条用例全部通过 ✅</li>
+          <li data-t="证据截图：齐全" data-a="证据截图：2 张引用不存在（无人察觉）">证据截图：齐全</li>
+          <li data-t="数据来源：执行人口头确认" data-a="数据来源：执行人口头确认，无法独立复核">数据来源：执行人口头确认</li>
+        </ul>
+        <div class="atk-verdict v-pass" data-v>结论：全绿，予以归档</div>
+      </div>
+      <div class="atk-col good">
+        <h4>🛡️ E2E-ATW 机制下</h4>
+        <ul>
+          <li data-t="结论：63 条用例全部通过" data-a="G-15 claims 对账：报告数字与源产物重算不一致 → 检出虚报">结论：63 条用例全部通过</li>
+          <li data-t="证据：逐条登记 sha256 指纹" data-a="G-14 / G-13：引用不存在 + 证据时效对账 FAIL，定位到具体条目">证据：逐条登记 sha256 指纹</li>
+          <li data-t="复核：attest.py 离线重算，三方可验" data-a="attest.py 离线复核：sha256 不一致 / chain_hash 断裂">复核：attest.py 离线重算，三方可验</li>
+        </ul>
+        <div class="atk-verdict v-pass" data-v>结论：全绿，且可被第三方复核</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 验收成绩 ================= -->
+<section id="accept" class="reveal">
+  <div class="ghost-num">✓</div>
+  <div class="sec-kicker">Acceptance</div>
+  <h2 class="sec-title">验收体系 · 成绩与交付</h2>
+  <p class="sec-sub">每任务完成后立即运行手册规定验收命令，全部通过才算完成；机器可验者全机器验收，语义类「确定性检查 + 人工抽核」双轨。</p>
+  <div class="biz-note"><span class="bi">💼</span><div><b>业务解读：</b>成绩不是自评：每项任务配机器验收命令，且经过外部 AI 独立验收（有条件通过后打回项已全部修复回归）。语义类结论保留人工抽核，符合质量双轨制惯例。</div></div>
+  <div class="tbl-wrap"><table>
+    <tr><th>任务</th><th>验收成绩</th></tr>
+    <tr><td>FR-04 manifest + 链式 hash + attest</td><td><span class="tag pass">31/31</span> 含攻击样本</td></tr>
+    <tr><td>AI-03 语义覆盖</td><td><span class="tag pass">33/33</span> 含抽判防自评自夸</td></tr>
+    <tr><td>CT-06 吞异常可见化 / LC-06 视觉兜底</td><td><span class="tag pass">26/26</span> 各全过</td></tr>
+    <tr><td>AI-02 triage_pack</td><td><span class="tag pass">25/25</span> + LC-05 score≤0 修复</td></tr>
+    <tr><td>EX-06 录制引导</td><td><span class="tag pass">19/19</span></td></tr>
+    <tr><td>CT-04 SKILL.md 2.0</td><td><span class="tag pass">16/16</span> 闸门表逐行一致</td></tr>
+    <tr><td>攻击复核 A~E 五类</td><td><span class="tag pass">14/14</span> 全绿</td></tr>
+    <tr><td>P 线专项（P1/P2/P4）+ G-17~19</td><td><span class="tag pass">首轮实证</span> 356 条 L2→349 test / 6/6 链路 / 3 公司 R 引擎 FAILED=0</td></tr>
+  </table></div>
+  <h4 class="blk">总验收 checklist（手册第 6 章）</h4>
+  <ul class="dot">
+    <li><b>6.1 五攻击全检出</b> ✅</li>
+    <li><b>6.2 流程强制</b> ✅ 无游标拒绝出报告 / TR-04 混年代 exit 2 / contract 落点 12 条 / 新闸门硬阻断</li>
+    <li><b>6.3 性能</b> ⏸ 机制已实现，复测移交原作者（未决 #2）</li>
+    <li><b>6.4 KPI 可观测</b> ✅ 知识效能四项 + 报告小节 + G-16 软闸门</li>
+    <li><b>6.5 约束回归</b> ✅ py_compile 3.6.8 全过 / Python 层零额外三方包 / 无明文密码无绝对路径</li>
+  </ul>
+  <h4 class="blk" style="margin-top:34px">交付回检包与外部验收</h4>
+  <p class="sec-sub" style="margin-top:-6px">外部 AI 验收结论（2026-10-12）：<b style="color:var(--amber)">有条件通过</b> —— 43 项：通过 37 / 通过带缺陷 2 / 部分通过 4 / 未实现 0；五类攻击样本 100% 检出；打回 3 阻断 + 3 应修 + 4 建议，本轮已全部修复并回归。</p>
+  <div class="tbl-wrap"><table>
+    <tr><th>#</th><th>类别</th><th>修复内容</th></tr>
+    <tr><td>1</td><td><span class="tag p0">阻断</span></td><td>smart-locate.ts 实现本体补齐（335 行，5 导出）+ init_project/gen_cases 接线兜底 + smartlocate-only 升 fail 硬闸</td></tr>
+    <tr><td>2</td><td><span class="tag p0">阻断</span></td><td>clean_tmp_dir 挂接引擎启动与 precheck 启动路径</td></tr>
+    <tr><td>3</td><td><span class="tag p0">阻断</span></td><td>zip 移除真实 secrets.json，保留模板；清理历史残留与 __pycache__</td></tr>
+    <tr><td>4</td><td><span class="tag p1">应修</span></td><td>AI-01 引用存在性防绕过（词级覆盖率 + 2-gram 兜底）；恒真黑名单扩展 db_assert.expect</td></tr>
+    <tr><td>5</td><td><span class="tag p1">应修</span></td><td>EX-05 冷启动 LPT 平局修复：文件大小退化估计 + tie-break</td></tr>
+    <tr><td>6</td><td><span class="tag p1">应修</span></td><td>coverage_semantic 支持 test.each 参数化标题定位</td></tr>
+    <tr><td>7~10</td><td><span class="tag p2">建议</span></td><td>README 同步 atw.py 入口 / 健康检查统一实现 / G-13 run_id 开关 / defect_classify 空输入防护</td></tr>
+  </table></div>
+  <h4 class="blk">未决问题（20261013 更新）</h4>
+  <ul class="dot">
+    <li>全量闸门复跑 4 项 FAIL（G-04/13/14/15）：上批工程验证轮 run_165217 遗留，非本批引入，下次正式 run 重立基线即消</li>
+    <li>P1 档位启发初稿持续校准（ui_write_chain 302 条偏高）；api_only 档位二期接 xx-web-open</li>
+    <li>性能类指标（全量 / --impact / 一次成功率）待原作者同环境复测回填</li>
+    <li>无 git 仓库，若需逐任务提交粒度可整体归档为单次提交</li>
+  </ul></section>
+
+<!-- ================= 成效度量 ================= -->
+<section id="metrics" class="reveal">
+  <div class="ghost-num">10</div>
+  <div class="sec-kicker">Metrics · 数字看板</div>
+  <h2 class="sec-title">成效度量：数字看板</h2>
+  <p class="sec-sub">把前面章节出现过的关键数字集中成一面看板：时间、可信度、资产规模。所有数字沿用本页技术章节口径，未做任何放大。</p>
+  <p class="mtr-note">防误导声明：本看板全部数字均来自本页技术章节的真实口径（验收成绩 / 能力矩阵 / 攻击防御矩阵），未引入任何本页之外的数据。</p>
+  <div class="biz-note"><span class="bi">💼</span><div><b>业务解读：</b>给管理者的一屏摘要：回归从「人点三天」到「机器夜间自动跑」、五类作弊 14/14 全拦、21 道机器质检、54 个真实业务用例收口。每个数字都能在对应章节找到出处。</div></div><div class="xdeck">
+<div class="xtabs"><button class="xtab on" data-pane="xp-metrics-0">KPI 看板</button><button class="xtab" data-pane="xp-metrics-1">耗时对比</button><button class="xtab" data-pane="xp-metrics-2">交付节奏</button></div><div class="xpane show" id="xp-metrics-0">
+  <div class="stats-row">
+    <div class="stat-card"><div class="num" style="font-size:25px">3 天 → 机器夜间执行</div><div class="lbl">全量回归：人工以天计 → 机器夜间自动执行</div></div>
+    <div class="stat-card"><div class="num" data-n="14">0</div><div class="lbl">攻击防御检出 14/14（五类攻击样本）</div></div>
+    <div class="stat-card"><div class="num" data-n="21">0</div><div class="lbl">确定性闸门（contract.json 单一来源）</div></div>
+    <div class="stat-card"><div class="num" data-n="54">0</div><div class="lbl">PROJ-179 资产减值收口用例</div></div>
+    <div class="stat-card"><div class="num" data-n="31">0</div><div class="lbl">Schema 保障注册项</div></div>
+    <div class="stat-card"><div class="num" style="font-size:36px">0.8</div><div class="lbl">覆盖率软门阈值（G-09 faithful_rate）</div></div>
+  </div></div><div class="xpane" id="xp-metrics-1">
+  <div class="card" style="padding:18px">
+  <svg class="chain-svg" viewBox="0 0 900 210" role="img" aria-label="回归模式对比：人工三天 vs 机器夜间执行">
+    <defs><linearGradient id="mtrG" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3ee6d6"/><stop offset="1" stop-color="#5b9dff"/></linearGradient></defs>
+    <text x="20" y="24" fill="#93a2c2" font-size="12">对比维度：完成一轮全量回归所需的<tspan fill="#ffc25e" font-weight="700">人力占用</tspan>（示意）</text>
+    <text x="20" y="66" fill="#e2eaf8" font-size="13" font-weight="700">人工全量回归</text>
+    <rect x="20" y="76" width="831" height="28" rx="8" fill="rgba(255,112,112,.16)" stroke="rgba(255,112,112,.55)"/>
+    <text x="845" y="95" fill="#ff9090" font-size="12" text-anchor="end" font-family="monospace" font-weight="700">≈ 3 天 · 全程占人 · 结论难复核</text>
+    <text x="20" y="132" fill="#e2eaf8" font-size="13" font-weight="700">E2E-ATW</text>
+    <rect x="20" y="142" width="330" height="28" rx="8" fill="rgba(62,230,214,.16)" stroke="url(#mtrG)" stroke-width="1.5"/>
+    <text x="36" y="161" fill="#3ee6d6" font-size="12" font-family="monospace" font-weight="700">机器执行 · 夜间自动运行</text>
+    <text x="362" y="161" fill="#93a2c2" font-size="11.5">执行时长随用例量与环境波动（小时级），但不占人力、次晨取可复核报告</text>
+    <text x="20" y="200" fill="#5c6a8c" font-size="11">价值主张：把「人盯着跑三天」变为「人下班、机器跑、早上看证据」，而非承诺固定的分钟数。</text>
+  </svg>
+  <p class="mtr-note tech-only">口径说明：执行时长受用例规模与环境影响（小时级），不做固定分钟数承诺；核心价值是释放人力与结论可复核。</p>
+  </div></div><div class="xpane" id="xp-metrics-2">
+  <details class="fq tech-only"><summary>展开：六波次交付节奏明细表</summary><div class="tbl-wrap"><table>
+    <tr><th style="width:130px">波次</th><th>能力组</th></tr>
+    <tr><td><span class="tag p0">波次一 P0</span></td><td>可信底座：G-13/G-14/G-15 可信化三闸、报告绑定 run_dir、数据实证强度、重试白名单、配置脱敏；探查智能等待、台账并行化（TR/EF 核心）</td></tr>
+    <tr><td><span class="tag p1">波次二 P1</span></td><td>契约化与 AI 验收：contract.json 单一来源、lint_spec、precheck 扩展、LLM 断言生成五道验收、TIA 影响分析、gen_specs 用例转化（P 线 P1）</td></tr>
+    <tr><td><span class="tag p2">波次三 P2</span></td><td>知识与执行扩展：SKILL.md 2.0、triage_pack 归因、语义覆盖三层口径、三层知识库、distill 入库五查、KPI 与 G-16、写链数据池 / 熔断挂起恢复 / 反向台账 / LPT 调度</td></tr>
+    <tr><td><span class="tag p3">波次四 P3</span></td><td>增强与兜底：L3 AI 视觉兜底（默认关闭）、吞异常可见化、UTF-8 文件名、record_bootstrap 录制引导</td></tr>
+    <tr><td><span class="tag p1">波次五 P4</span></td><td>专项桥接：postcheck 链路后置核验、depr_bridge 折旧桥接 R 引擎接入（P 线 P2/P4）+ G-17~G-21 新闸</td></tr>
+    <tr><td><span class="tag pass">波次六 回归</span></td><td>外部验收打回修复：3 阻断 + 3 应修 + 4 建议全部修复并回归；PROJ-179 资产减值 54 用例全绿收口、V4 报告交付</td></tr>
+  </table></div></details>
+  </div></div></section>
+
+<!-- ================= 附录 ================= -->
+<div class="part-div"><span>PART 05 · 附录 <b>APPENDIX</b></span></div>
+
+<section id="faq" class="reveal">
+  <div class="ghost-num">11</div>
+  <div class="sec-kicker">Appendix</div>
+  <h2 class="sec-title">附录：术语速查 · FAQ · 路线图</h2>
+  <p class="sec-sub">业务向术语表、常见疑问与后续路线，备查。</p><div class="xdeck">
+<div class="xtabs"><button class="xtab on" data-pane="xp-faq-0">术语速查</button><button class="xtab" data-pane="xp-faq-1">常见疑问</button><button class="xtab" data-pane="xp-faq-2">路线图</button></div><div class="xpane show" id="xp-faq-0">
+  <div class="tbl-wrap"><table>
+    <tr><th style="width:160px">术语</th><th>业务含义（技术补充）</th></tr>
+    <tr><td><b style="color:var(--cyan)">五源输入</b></td><td>一次需求验证所需的五类材料：需求文档、规格说明书、代码、数据口径、知识库（docs/specs/code/sql/kb）</td></tr>
+    <tr><td><b style="color:var(--cyan)">闸门（gate）</b></td><td>机器强制执行的质量检查（G-01~G-21）：任一不通过即终止流程、禁止归档</td></tr>
+    <tr><td><b style="color:var(--cyan)">探针（probe）</b></td><td>执行前的环境健康检查，探测不过不进执行，防误报</td></tr>
+    <tr><td><b style="color:var(--cyan)">失败指纹</b></td><td>错误摘要特征（fingerprint）：同类失败自动归类、抑制无效重试</td></tr>
+    <tr><td><b style="color:var(--cyan)">验收戳（gated_at）</b></td><td>AI 生成内容经机器验收后加盖的标记，无戳产物下游拒绝消费</td></tr>
+    <tr><td><b style="color:var(--cyan)">业务用例 / 执行圈（L2 / L3）</b></td><td>L2 = 17 字段人工可读业务用例；L3 = 可执行脚本（spec.ts）</td></tr>
+    <tr><td><b style="color:var(--cyan)">双轨断言</b></td><td>界面断言（页面呈现）+ 数据核验（只读数据库查询），互相印证</td></tr>
+    <tr><td><b style="color:var(--cyan)">台账（ledger）</b></td><td>写链路每笔操作的数据登记，核验零遗留（写完必清）</td></tr>
+    <tr><td><b style="color:var(--cyan)">链式 hash</b></td><td>产物指纹链（manifest.json）：任何产物被改，后置链全部断裂可定位</td></tr>
+    <tr><td><b style="color:var(--cyan)">假绿灯</b></td><td>报告显示通过但实际未真正验证的风险；由数据实证强度规则（plan_strength）拦截</td></tr>
+    <tr><td><b style="color:var(--cyan)">覆盖率三档</b></td><td>完全覆盖 / 已验证 / 可信执行（covered/verified/faithful），AI 判定后机器抽检</td></tr>
+  </table></div></div><div class="xpane" id="xp-faq-1">
+  <div class="faq"><button class="faq-q" type="button">报告里的数字会不会被人事后改掉？<span class="fq-ico">＋</span></button>
+    <div class="faq-a"><div class="faq-a-in">不会不被发现。每个产物都登记了数字指纹并串成链（链式 hash），事后改任何一个数字、删任何一个文件，复核时链条会断并精确定位到第几条。验收方可用一个 221 行的独立小工具（attest.py）离线重算验证，不需要信任交付方。</div></div></div>
+
+  <div class="faq"><button class="faq-q" type="button">AI 写的用例和结论，写错了怎么办？<span class="fq-ico">＋</span></button>
+    <div class="faq-a"><div class="faq-a-in">制度上默认「AI 产出不可信」：AI 只做工序内的语义加工，产出必须过一遍机器验收（三段式验收戳，无戳不消费）；通过率异常（批失败率超 30%）会自动停工转人工。业务类结论按设计强制人工复核（pending_review），不会自动归档。</div></div></div>
+
+  <div class="faq"><button class="faq-q" type="button">换一个需求，是不是要重新搭一遍？<span class="fq-ico">＋</span></button>
+    <div class="faq-a"><div class="faq-a-in">不用。新需求只需一次性声明五类输入材料（需求/规格/代码/数据口径/知识库，init_project），之后的解析、用例生成、执行、核验、报告全流程开箱即用；知识库与规则配置跨项目复用。</div></div></div>
+
+  <div class="faq"><button class="faq-q" type="button">测试环境抖动，会不会造成误判、冤枉版本？<span class="fq-ico">＋</span></button>
+    <div class="faq-a"><div class="faq-a-in">有三层防护：执行前先探活，环境不达标直接不进执行（探针预检）；失败会区分「环境问题 / 产品缺陷 / 不稳定用例」（缺陷分类）；疑似环境问题必须重跑二次确认，仍失败的转人工，不允许直接记为环境问题（环境二次确认）。连续抖动超阈值还会熔断停跑，防止垃圾结论刷屏。</div></div></div>
+
+  <div class="faq"><button class="faq-q" type="button">「全绿」会不会是假绿——比如断言放水、只查界面不查数据？<span class="fq-ico">＋</span></button>
+    <div class="faq-a"><div class="faq-a-in">这正是重点防御对象：每条用例必须「界面 + 数据」成对断言（双轨断言），写操作还必须证明数据是本轮写入的（{run_start} 时间窗口）；断言强度不足直接禁止出全绿报告（plan_strength 规则 + 攻击 E 实测拦截）。假绿样例在攻击复核中 14/14 被检出。</div></div></div>
+
+  <div class="faq"><button class="faq-q" type="button">对团队技能有什么要求？谁维护？<span class="fq-ico">＋</span></button>
+    <div class="faq-a"><div class="faq-a-in">日常使用只需会准备材料、执行一条命令，测试同学即可胜任；维护侧需要一名熟悉 Python 的同学管理规则配置（contract.json 单一来源）。运行环境零额外三方包（Python 3.6+ 与 Node 即可），不引入额外运维负担。</div></div></div>
+
+  <div class="faq"><button class="faq-q" type="button">人工复核环节还剩多少？会不会又回到人海战术？<span class="fq-ico">＋</span></button>
+    <div class="faq-a"><div class="faq-a-in">人工只保留在两类位置：AI 业务类结论的抽核（pending_review）和新知识的入库确认。机械环节（解析/生成/执行/核验/报告）全脚本化、机器自动跑完，人工不参与执行。</div></div></div>
+
+  <div class="faq"><button class="faq-q" type="button">它能不能做性能压测、安全渗透、真机测试？<span class="fq-ico">＋</span></button>
+    <div class="faq-a"><div class="faq-a-in">不能，这些是明确的边界外场景（见<a href="#exec" style="color:var(--cyan)">业务速览 · 适用边界</a>）。它专注 UI 功能回归的可信自动化；性能、安全、真机矩阵应搭配对应专项工具。</div></div></div></div><div class="xpane" id="xp-faq-2">
+  <div class="layers">
+    <div class="layer l1"><div class="lico">✅</div><div class="lt">已落地（2026-10-16）</div><p>八模块 43 任务 + P 线全量实证；21 闸门全生效；执行链聚合（read/write 双圈 6h 窗口）；P1-A/B 报告可读性 + P1-C 代码源覆盖；PROJ-179 资产减值 54 用例全绿收口，V4 完整版报告。</p><span class="lk">G-17~21 · gen_specs · postcheck · depr_bridge · scope_probe · annotate_shots</span></div>
+    <div class="layer l2"><div class="lico">🔧</div><div class="lt">进行中</div><p>P1 档位启发持续校准（ui_write_chain 偏高）；api_only 档位二期接 xx-web-open；性能指标待原作者同环境复测回填。</p><span class="lk">未决 #2/#3 · xx-web-open 接入</span></div>
+    <div class="layer l3"><div class="lico">🗓️</div><div class="lt">待排期</div><p>新需求直接复用（PROJ-180 等 init_project 开箱）；录制引导规模化沉淀；L3 AI 视觉兜底默认化评估。</p><span class="lk">record_bootstrap · verify_locator</span></div>
+  </div>
+</div></div></section>
+
+</main>
+</div>
+
+<button id="navToggle" title="打开目录" aria-label="打开目录">☰</button>
+<button id="topBtn" title="回到顶部">↑</button>
+<div id="toast" role="status"></div>
+
+<script>
+/* ================= 数据 ================= */
+const STAGES=[
+ {id:'parse',name:'解析',task:'parse_docs',in:'五源（docs/specs/code/sql/kb）',out:'parse_result.json',fail:'解析失败无产物，gen 无输入可依'},
+ {id:'gen',name:'用例生成',task:'gen_cases',in:'parse_result.json + knowledge/',out:'业务用例.csv + tests/*.spec.ts + coverage.json',fail:'lint 命中 fail 级规则（如裸 .el- 定位）即阻断'},
+ {id:'precheck',name:'环境预检',task:'precheck',gate:1,in:'目标环境',out:'预检记录（gate）',fail:'环境不达标机器阻断，不进执行'},
+ {id:'run',name:'读链路执行',task:'runner',in:'tests/*.spec.ts',out:'run_results/run_<ts>/（台账+manifest+遥测）',fail:'探针不过直接退出；失败进入 classify 归因'},
+ {id:'run_write',name:'写链路',task:'runner · write',in:'写链路 spec',out:'同 run 目录合并',fail:'write_specs_exist 为假自动跳过；污染由 EX-02/EX-04 回滚'},
+ {id:'verify',name:'数据实证',task:'verify_data',in:'run_result + 核验计划',out:'verify/verify_result.json',fail:'数据实证不过即 FAIL；强度不足 exit 4'},
+ {id:'classify',name:'缺陷分类',task:'defect_classify',gate:1,in:'run_result + verify_result',out:'verify/classify_result.json',fail:'gate 阶段，归类异常阻断归档'},
+ {id:'report',name:'报告+闸门',task:'report_with_gate',gate:1,in:'run + verify + classify',out:'核验报告.md/.html + attestation.json',fail:'21 项闸门不过整体 FAIL 且不归档'}];
+
+const MODULES=[
+ {id:'all',name:'全部 42 项',color:'#3ee6d6'},
+ {id:'TR',name:'TR 可信化 ×9',color:'#3ee6d6',pos:'报告与结论可信链：G-13 时效 / G-14 引用 / G-15 对账 + 输入绑定 + 数据实证强度 + 重试与归因控制 + 配置脱敏'},
+ {id:'EF',name:'EF 效率 ×6',color:'#5b9dff',pos:'全量执行基线的六大效率瓶颈逐一消除（智能等待/并行/批量/流式/拆分/trace）'},
+ {id:'LC',name:'LC 定位 ×6',color:'#a78bff',pos:'元素定位从「盲探」升级为「策略链 + 遥测 + 视觉兜底」三级确定性链'},
+ {id:'KB',name:'KB 知识库 ×3',color:'#ff8ac2',pos:'知识从「人工记起」升级为「三层加载 + 自动积累 + 可观测」'},
+ {id:'CT',name:'CT 契约化 ×6',color:'#ffc25e',pos:'规则收敛到单一来源，约束从口头表述转为机器执行'},
+ {id:'AI',name:'AI 三段式 ×3',color:'#5be49b',pos:'备料 → AI 加工 draft → 机器验收入库，draft 无 gated_at 戳不得消费'},
+ {id:'EX',name:'EX 扩展 ×6',color:'#ff7070',pos:'执行规模与冷启动杠杆'},
+ {id:'P',name:'P 专项桥接 ×3',color:'#ff9f5e',pos:'业务用例驱动转化（P1）+ 写链后置核验（P2）+ 折旧专项桥接（P4）：把 tc-toolkit 17 字段用例、链路拓扑核验与 depr-check-toolkit R 引擎接入八步流程，配套 G-17~G-21 五门新闸（含 P1-B 三段式截图标注 G-20、P1-C 代码源覆盖 G-21）'}];
+
+const TASKS=[
+ {id:'TR-01',mod:'TR',p:'P0',name:'G-13 证据时效对账',desc:'最新 run 新鲜度 < freshness_hours（默认 2h）且 unexpected==0；run_at 晚于当前时间（时钟异常）亦拒绝。旧对账子项由 G-15 接管，禁止两套并存。',src:'verify_report.py check_freshness L310-356'},
+ {id:'TR-02',mod:'TR',p:'P0',name:'G-14 报告引用存在性',desc:'report_refs.json 逐条检查：文件存在 + 非空 + sha256 一致；过渡期正则扫描报告反引号路径（known_roots 白名单）。',src:'verify_report.py check_ref_existence L359-401'},
+ {id:'TR-03',mod:'TR',p:'P0',name:'G-15 claims 对账 + attestation',desc:'登记 5 源产物 + 2 报告产物 sha256，声明 5 条 claim；核验侧重算比对 + report_extract 正则提取报告数字对比，改「预期 100→999」即检出虚报。',src:'gen_report L575-642 / verify_report L419-522'},
+ {id:'TR-04',mod:'TR',p:'P0',name:'报告强制输入绑定 run_dir',desc:'产物 mtime 早于 run_at−5min 拒绝「陈旧产物混入」；晚于 run_at+freshness_hours 拒绝跨 run 组合，exit 2。',src:'gen_report.py bind_check L658-682'},
+ {id:'TR-05',mod:'TR',p:'P0',name:'数据实证最小强度规则',desc:'写链路计划至少 1 项 {run_start} 窗口断言；不满足标 plan_strength_fail 且 exit 4，禁止出全绿报告。',src:'verify_data.py L244-302 / _detect_strength L51'},
+ {id:'TR-06',mod:'TR',p:'P0',name:'重试白名单生效',desc:'命中指纹且 retry=false 的 env 失败抑制重试（锁行超时不再叠加锁竞争），分「可重试/被抑制」清单。',src:'runner.py filter_retry_suppressed L411-416'},
+ {id:'TR-07',mod:'TR',p:'P0',name:'配置外置与脱敏',desc:'${TOOL_ROOT}/${SECRETS:...} 占位展开；secrets.json gitignore 豁免；config/ 全目录 grep 明文密码零命中。',src:'atw_common.py _expand_value L145'},
+ {id:'TR-08',mod:'TR',p:'P1',name:'台账审计项三态化',desc:'ok / fail / unknown（SQLFAIL 仅留档不阻断）；审计项查询失败归 unknown 不误导阻断判断。',src:'runner.py _audit_one L651-670'},
+ {id:'TR-09',mod:'TR',p:'P1',name:'环境归因二次确认',desc:'重跑后按用例标题比对：消失=confirmed，仍失败=unconfirmed 转人工，不得直接归档 env。',src:'runner.py build_env_confirmations L419-429'},
+ {id:'EF-01',mod:'EF',p:'P0',name:'探查脚本智能等待化',desc:'健康探测 3 次 × 5s 间隔重试防间歇性 502 误判；--poll-chain 轮询参数化替代固定 sleep。',src:'precheck.py check_target L252-267'},
+ {id:'EF-02',mod:'EF',p:'P0',name:'台账/预检内部并行化',desc:'审计项 ThreadPoolExecutor 并行（worker=min(8,项数)）；precheck 九项检查并行，墙钟≈最慢项而非各项之和。',src:'runner.py L695-752 / precheck L270-311'},
+ {id:'EF-03',mod:'EF',p:'P1',name:'DB 通道批量化',desc:'N 条 SQL 从 N 次子进程降为 1 次（临时驱动脚本循环 execute_query）；批量失败项回退轮询兜底。',src:'atw_common.py db_query_batch L272-297'},
+ {id:'EF-04',mod:'EF',p:'P1',name:'stdout 流式 + 超时可配',desc:'JSON 直写文件不驻留内存；超时 kill 进程树 rc=124，部分产物保留供诊断。',src:'runner.py run_playwright L126-189'},
+ {id:'EF-05',mod:'EF',p:'P1',name:'慢文件拆分',desc:'spec>3min 识别 suggested_split / long_running，后者幂等写入 spec_tiers.json 供 LPT 装箱优先排。',src:'runner.py compute_slow_specs L445-467'},
+ {id:'EF-06',mod:'EF',p:'P2',name:'trace 采集 + viewer 调试流',desc:'失败用例关联 trace.zip 归档进 run 产物，npx playwright show-trace 直读调试。',src:'runner.py collect_failure_traces L1402'},
+ {id:'LC-01',mod:'LC',p:'P2',name:'smartLocate 策略链 + 遥测',desc:'按 cost 升序尝试 role/text/placeholder/语义 class；逐次定位结果追加 locator_telemetry.jsonl 供 distill/KPI 消费。',src:'tests/helpers/smart-locate.ts'},
+ {id:'LC-02',mod:'LC',p:'P2',name:'ui_interaction v2 + 几何规则',desc:'pattern 带 locate.strategies[{kind,value,cost}] 可执行策略；中心距/遮罩判定并入复验。',src:'lib/schemas.py L374-392'},
+ {id:'LC-03',mod:'LC',p:'P2',name:'DOM 结构指纹降级',desc:'指纹分级：结构 → 文本 → 粗分类，结构变化降级匹配兜底命中。',src:'knowledge/fingerprints.json'},
+ {id:'LC-04',mod:'LC',p:'P2',name:'gen_cases 活引用改造',desc:'生成 spec 改为策略链/helpers 调用而非硬编码定位器；smartlocate-only 已升级 fail 硬闸。',src:'gen_cases / lint_spec / contract.json'},
+ {id:'LC-05',mod:'LC',p:'P1',name:'指纹匹配升级',desc:'all/any/regex 条件 + weight 计分 + 多命中稳定排序 + 三层分层；旧格式自动迁移行为不变；新指纹强制关键词≥2 或含正则锚点。',src:'runner.py match_fingerprint L358-400'},
+ {id:'LC-06',mod:'LC',p:'P3',name:'L3 AI 视觉兜底',desc:'默认关闭。三铁律机器执行：AI 只给定位建议永不给坐标 / 三重复验任一失败即放弃 / 写链路禁用。预算 3 次/run，同元素二次直接 FAIL 人审。26/26 验收。',src:'bin/verify_locator.py（153 行）'},
+ {id:'KB-01',mod:'KB',p:'P2',name:'三层合并加载 + schema v2',desc:'框架/平台/项目三层就近覆盖唯一入口；dormant/archived 过滤；置信度 ×0.9^月衰减，<0.3 转 dormant。',src:'atw_common.py load_knowledge L69-142'},
+ {id:'KB-02',mod:'KB',p:'P2',name:'learn.py distill / import-draft',desc:'遥测蒸馏 pending 草稿；导入五道检查：type 白名单 / evidence 存在 / 去重 0.85 / 指纹质量 / 人工确认闸，禁止全自动入库。',src:'learn.py L223-453'},
+ {id:'KB-03',mod:'KB',p:'P2',name:'知识效能 KPI + G-16',desc:'一次成功率 / 知识命中率 / 失效率 / flaky_rate 四指标；flaky 超 0.10 WARN，连续 3 run 超阈值 FAIL 禁归档。',src:'runner compute_kpi L936-980 / verify_report L525-572'},
+ {id:'CT-01',mod:'CT',p:'P1',name:'contract.json 单一规则来源',desc:'G-01~G-16 注册表 + 4 lint + 3 precheck + 词表（22/4/23 词）+ R-01~R-13 约束落点六段结构；缺失回退内置并 WARN。',src:'config/contract.json（300 行）'},
+ {id:'CT-02',mod:'CT',p:'P1',name:'lint_spec 静态检查',desc:'生成后 1 秒反馈：no-waitForTimeout / dual-track-assertion / smartlocate-only / filename-utf8 四规则，豁免注释机器校验理由≥10 字。',src:'bin/lint_spec.py / atw.py _lint_after_gen L473'},
+ {id:'CT-03',mod:'CT',p:'P1',name:'precheck 扩展三项',desc:'写链路前强制本日快照 / 平台一致性 2h 时效 / 知识库 00~03 章基线比对。',src:'precheck.py _ctp L276-279'},
+ {id:'CT-04',mod:'CT',p:'P2',name:'SKILL.md 2.0 双层改写',desc:'四部分骨架；删除全部口头串联；16/16 验收：约束可检索、闸门表逐行一致、15 脚本引用存在。',src:'SKILL.md（26462 字节）'},
+ {id:'CT-05',mod:'CT',p:'P3',name:'文件名 UTF-8 + G-02 改模式匹配',desc:'surrogate 字节/控制字符/尾随空格检出；用例编号改前缀白名单 + 数字段正则，分段编号不再误报。',src:'lint_spec / verify_report check_case_seq L86'},
+ {id:'CT-06',mod:'CT',p:'P3',name:'静默吞异常计数可见化',desc:'runner 13 处 + parse_docs 5 处吞异常留痕进产物并计数，报告含摘要小节。26/26。',src:'runner.py _record_swallowed L29-41'},
+ {id:'AI-01',mod:'AI',p:'P1',name:'LLM 断言生成器',desc:'kb 边界清单 → brief → draft → 五道确定性验收（schema 对应/双轨配对/{run_start} 窗口/引用存在性/恒真黑名单）；批失败率>30% 停工人审。',src:'apply_assertions.py check_draft L106-155'},
+ {id:'AI-02',mod:'AI',p:'P2',name:'triage_pack 失败归因',desc:'pack 含指纹命中/错误摘要/DOM/截图/trace/已知陷阱（先查库再问 AI）；draft 枚举校验 + evidence 路径解析；biz 类强制 pending_review。25/25。',src:'bin/triage_pack.py（388 行）'},
+ {id:'AI-03',mod:'AI',p:'P2',name:'语义覆盖三层口径',desc:'covered/verified/faithful；bot_floor 机器底线强制降级；10% 抽判跨进程稳定种子防自评自夸，verdict 不一致整批清戳重判。33/33。',src:'bin/coverage_semantic.py（537 行）'},
+ {id:'EX-01',mod:'EX',p:'P1',name:'TIA 测试影响分析',desc:'git diff → 规则编号 → TC → spec 反查链路；分层漏斗 smoke/full-read/impact；漏判检测对比全量兜底。',src:'bin/impact.py（167 行）'},
+ {id:'EX-02',mod:'EX',p:'P2',name:'写链路数据池',desc:'ATW_WORKER_ID 注入，pool[worker_id] 参数化账号/机构；台账按 {worker_account} 归属过滤，分片落 data_ledger_w{N}.json。',src:'runner.py _pool_worker_account L673-692'},
+ {id:'EX-03',mod:'EX',p:'P2',name:'熔断-挂起-恢复状态机',desc:'探测预算耗尽挂起（checkpoint/pending JSON + resume_cmd），--from-stage 续跑衔接断点不重跑。',src:'config circuit：budget 25min / backoff [30,60,120,300]'},
+ {id:'EX-04',mod:'EX',p:'P2',name:'反向台账精确清除',desc:'cleanup 声明逐条执行：api 业务反向操作 / sql 受控删除（默认关闭）；台账零遗留为主判定，快照仅漂移抽样。',src:'runner.py run_cleanup L755-'},
+ {id:'EX-05',mod:'EX',p:'P2',name:'LPT 装箱调度 + 失败优先',desc:'近 5 次耗时均值最长优先装箱；上轮 failed/flaky 排箱首；冷启动文件大小退化估计 + tie-break。',src:'runner.py build_lpt_plan L592-619'},
+ {id:'EX-06',mod:'EX',p:'P3',name:'record_bootstrap 录制引导',desc:'codegen 拉起 / distill 特征提取进 pending_review（不自动入库）/ --check 机器验收后才可走正常闸门。19/19。',src:'bin/record_bootstrap.py（225 行）'},
+ {id:'P-01',mod:'P',p:'P1',name:'gen_specs 用例转化器',desc:'L2 业务用例（tc-toolkit 17 字段 CSV）→ spec.ts 机械转化：档位启发推导（ui_write_chain/manual/db_only/api_only/ui_read）+ 句式识别装配（输入/点击/断言/SQL）；产物隔离目录 + 转化台账零丢弃。实证：356 条 L2 → 27 spec / 349 test。',src:'bin/gen_specs.py（244 行）'},
+ {id:'P-02',mod:'P',p:'P2',name:'postcheck 链路后置核验',desc:'写链产出数据业务链路逐环反向验证：project.json link_topology 声明式锚点（锚 SQL + 环 SQL 期望）；锚点取值双形态归一（缺陷#9 同源防御）。实证：减值单执行后全链 6/6 环节 PASS。',src:'bin/postcheck.py（130 行）'},
+ {id:'P-04',mod:'P',p:'P4',name:'depr_bridge 折旧桥接',desc:'代表性公司自动选取（最大/最小在提规模、减值关联、首月计提、免折旧边界四维度打分选 3~5 家）+ depr-check-toolkit R 引擎 subprocess 接入 + 计提回归骨架；内容级 FAILED 计数拦截假绿灯。实证：3 家代表公司，R 引擎 13 模板 FAILED=0。',src:'bin/depr_bridge.py（254 行）'}];
+
+const GATES=[
+ ['G-01','结构完整','project.json + cases/ + tests/ + data/ + reports','—'],
+ ['G-02','用例编号','前缀白名单 + 数字段正则模式匹配；悬空检测','prefixes / number_re'],
+ ['G-03','状态枚举','核验状态断言定性准确','—'],
+ ['G-04','证据溯源','证据文件齐全','evidence_ext (.png/.jpg/.md/.txt/.html)'],
+ ['G-05','汇总一致','汇总与明细一致','—'],
+ ['G-06','反幻觉','推断词表机器兜底','infer_words 4 词'],
+ ['G-07','HTML DOM','HTML 报告 DOM 结构校验','—'],
+ ['G-08','去 AI 化','AI 味词表检测','ai_words 22 词'],
+ ['G-09','规则覆盖','覆盖完整 + faithful_rate 软闸门','faithful_rate_min 0.8'],
+ ['G-10','三层映射','CSV↔spec 映射完整','—'],
+ ['G-11','台账零遗留','写链路数据零遗留','—'],
+ ['G-12','基线回归','基线 passed→failed 新增即 FAIL','—'],
+ ['G-13','证据时效','最新 run 新鲜度 + unexpected==0','freshness_hours 2h'],
+ ['G-14','引用存在','report_refs 存在+非空+sha256','—'],
+ ['G-15','claims 对账','源产物 sha256 重算 + 报告数字提取','attestation.json'],
+ ['G-16','flaky 软闸门','超阈值 WARN，连续 N run 转 FAIL','warn 0.10 / consecutive 3'],
+ ['G-17','用例格式','L2 用例与 tc-toolkit 17 字段对齐（历史项目 WARN 放行）','tc_source 声明'],
+ ['G-18','转化完整性','档位全覆盖 + 转化台账去向齐全（禁静默丢弃）','conversion_ledger'],
+ ['G-19','折旧后核验','@depr 用例须代表性公司清单 + R 引擎反向核验通过','depr_companies.json'],
+ ['G-20','三段式截图标注','用例业务三段式（干什么/核验什么/断言什么）+ 截图标注声明（P1-B）','annotate_shots'],
+ ['G-21','代码源覆盖矩阵','CP 测试点全覆盖 + P0 缺口阻断 + 声明缺口 WARN（P1-C）','scope_report.json']];
+
+/* ================= 粒子背景 ================= */
+(function(){
+  const cv=document.getElementById('particles'),ctx=cv.getContext('2d');
+  let W,H,pts=[];
+  function resize(){W=cv.width=cv.offsetWidth;H=cv.height=cv.offsetHeight;
+    pts=Array.from({length:Math.min(70,W/18)},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.4,vy:(Math.random()-.5)*.4,r:Math.random()*1.6+.6}));}
+  resize();addEventListener('resize',resize);
+  (function tick(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fillStyle='rgba(62,230,214,.5)';ctx.fill();});
+    for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
+      const a=pts[i],b=pts[j],d=Math.hypot(a.x-b.x,a.y-b.y);
+      if(d<130){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+        ctx.strokeStyle=`rgba(91,157,255,${(1-d/130)*.18})`;ctx.lineWidth=1;ctx.stroke();}}
+    requestAnimationFrame(tick);
+  })();
+})();
+
+/* ================= 打字机 ================= */
+(function(){
+  const txt='文档编号 E2E-ATW-IMPL-20261016-V2.2 · 2026-10-16 · 配套《优化实施手册》《交付回检包》《SKILL.md v2.2》《全面优化方案 V2.0》《工具能力分析》《PROJ-179 整体核验报告完整版 V4》';
+  const el=document.getElementById('typewriter');let i=0;
+  (function type(){if(i<=txt.length){el.textContent=txt.slice(0,i++);setTimeout(type,26);}})();
+})();
+
+/* ================= 流水线 ================= */
+const track=document.getElementById('pipeTrack');
+STAGES.forEach((s,i)=>{
+  const n=document.createElement('div');n.className='pnode'+(s.gate?' is-gate':'');n.dataset.i=i;
+  n.innerHTML=`<div class="box"><div class="sid">STAGE ${i+1}</div><div class="sname">${s.name}</div><div class="stask">${s.task}</div></div>`;
+  n.querySelector('.box').onclick=()=>selectStage(i);
+  track.appendChild(n);
+  if(i<STAGES.length-1){const l=document.createElement('div');l.className='plink';track.appendChild(l);}
+});
+function selectStage(i){
+  document.querySelectorAll('.pnode').forEach(el=>el.classList.toggle('on',+el.dataset.i===i));
+  const s=STAGES[i],box=document.getElementById('stageDetail');
+  box.classList.remove('show');void box.offsetWidth;
+  box.innerHTML=`<h3 style="margin-bottom:12px">STAGE ${i+1} · ${s.name} <span class="tag gate" style="margin-left:8px">${s.task}</span>${s.gate?' <span class="tag p0">gate 强约束</span>':''}</h3>
+  <table><tr><th style="width:90px">输入</th><td>${s.in}</td></tr>
+  <tr><th>产物</th><td>${s.out}</td></tr>
+  <tr><th>失败后果</th><td style="color:var(--red)">${s.fail}</td></tr></table>`;
+  box.classList.add('show');
+}
+selectStage(0);
+
+/* ================= 模块任务 ================= */
+const tabs=document.getElementById('modTabs'),grid=document.getElementById('taskGrid');
+MODULES.forEach(m=>{
+  const b=document.createElement('button');b.className='mod-tab'+(m.id==='all'?' on':'');b.textContent=m.name;b.dataset.mod=m.id;
+  b.style.setProperty('--tab-c',m.color);
+  b.onclick=()=>{document.querySelectorAll('.mod-tab').forEach(t=>t.classList.remove('on'));b.classList.add('on');filterTasks(m.id);};
+  tabs.appendChild(b);
+});
+function taskCard(t,idx){
+  const mc=MODULES.find(m=>m.id===t.mod).color;
+  const d=document.createElement('details');d.className='task tq';
+  d.style.setProperty('--mod-c',mc);d.style.animationDelay=(idx*0.03)+'s';
+  d.innerHTML=`<summary><span class="tid">${t.id}</span><span class="tag ${t.p.toLowerCase()}">${t.p}</span><span class="tname">${t.name}</span><span class="tq-arrow">＋</span></summary>
+  <div class="tq-body"><div class="tdesc">${t.desc}</div><div class="tmeta">⚓ ${t.src}</div></div>`;
+  return d;
+}
+function filterTasks(mod){
+  grid.innerHTML='';
+  const list=TASKS.filter(t=>mod==='all'||t.mod===mod);
+  if(mod!=='all'){const m=MODULES.find(x=>x.id===mod);
+    const p=document.createElement('div');p.className='task modpos';p.style.setProperty('--mod-c',m.color);
+    p.innerHTML=`<div class="tname" style="color:${m.color}">◈ 模块定位</div><div class="tdesc">${m.pos}</div>`;
+    grid.appendChild(p);}
+  list.forEach((t,i)=>grid.appendChild(taskCard(t,i)));
+}
+filterTasks('all');
+
+/* ================= 闸门 ================= */
+const gg=document.getElementById('gateGrid');
+GATES.forEach((g,i)=>{
+  const d=document.createElement('div');d.className='gate';
+  d.innerHTML=`<div class="gid">${g[0]}</div><div class="gname">${g[1]}</div><div class="gdesc">${g[2]}</div><div class="gparam">参数：${g[3]}</div>`;
+  gg.appendChild(d);
+});
+new IntersectionObserver((es,ob)=>{es.forEach(e=>{if(e.isIntersecting){
+  document.getElementById('ringFg').style.strokeDashoffset='0';ob.disconnect();}})},{threshold:.4}).observe(document.getElementById('gateRing'));
+
+/* ================= 光标辉光 ================= */
+(function(){
+  const g=document.getElementById('cursorGlow');let gx=0,gy=0,tx=0,ty=0;
+  addEventListener('mousemove',e=>{tx=e.clientX;ty=e.clientY;});
+  (function loop(){gx+=(tx-gx)*.08;gy+=(ty-gy)*.08;g.style.left=gx+'px';g.style.top=gy+'px';requestAnimationFrame(loop);})();
+})();
+
+/* ================= 滚动效果 ================= */
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('vis');}),{threshold:.08});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+const counters=document.querySelectorAll('.stat-card .num');
+const cio=new IntersectionObserver(es=>es.forEach(e=>{
+  if(!e.isIntersecting)return;const el=e.target,n=+el.dataset.n;if(!isFinite(n)){cio.unobserve(el);return;}let c=0;
+  const step=Math.max(1,Math.round(n/40));
+  const t=setInterval(()=>{c+=step;if(c>=n){c=n;clearInterval(t);}el.textContent=c;},30);
+  cio.unobserve(el);
+}),{threshold:.4});
+counters.forEach(el=>cio.observe(el));
+
+const links=document.querySelectorAll('.sidenav a[href^="#"]');
+const secs=[...links].map(a=>document.querySelector(a.getAttribute('href')));
+addEventListener('scroll',()=>{
+  let idx=0;secs.forEach((s,i)=>{if(s&&s.getBoundingClientRect().top<170)idx=i;});
+  links.forEach((a,i)=>a.classList.toggle('active',i===idx));
+  document.getElementById('topBtn').classList.toggle('show',scrollY>600);
+  const h=document.documentElement,p=scrollY/(h.scrollHeight-innerHeight);
+  document.getElementById('progress').style.width=(p*100)+'%';
+},{passive:true});
+document.getElementById('topBtn').onclick=()=>scrollTo({top:0,behavior:'smooth'});
+
+/* ================= 卡片 tilt 微交互（仅 stat-card / rlink，避免与既有 hover transform 冲突） ================= */
+document.querySelectorAll('.stat-card,.rlink').forEach(el=>{
+  el.addEventListener('mousemove',e=>{
+    const r=el.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
+    el.style.transform=`translateY(-6px) scale(1.02) perspective(900px) rotateX(${-y*3}deg) rotateY(${x*3}deg)`;
+  });
+  el.addEventListener('mouseleave',()=>{el.style.transform='';});
+});
+
+/* ================= 键盘可达性 ================= */
+document.querySelectorAll('.pnode .box').forEach((el,i)=>{
+  el.setAttribute('tabindex','0');
+  el.setAttribute('role','button');
+  el.setAttribute('aria-label','查看阶段 '+(i+1)+' 详情');
+  el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();selectStage(i);}});
+});
+document.querySelectorAll('.mod-tab').forEach(el=>{
+  el.setAttribute('role','tab');
+  el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();el.click();}});
+});
+
+/* ================= 侧栏导航键盘导航 ================= */
+document.querySelectorAll('.sidenav a').forEach(a=>{
+  a.addEventListener('keydown',e=>{
+    if(e.key==='ArrowDown'){e.preventDefault();const n=a.nextElementSibling;if(n&&n.tagName==='A')n.focus();}
+    if(e.key==='ArrowUp'){e.preventDefault();let p=a.previousElementSibling;while(p&&p.tagName!=='A')p=p.previousElementSibling;if(p)p.focus();}
+  });
+});
+
+/* ================= 视角切换（业务 / 技术） ================= */
+(function(){
+  const KEY='atw-view';
+  const tog=[document.getElementById('viewToggle'),document.getElementById('viewToggleNav')].filter(Boolean);
+  function apply(v){
+    document.body.classList.toggle('biz-view',v==='biz');
+    tog.forEach(t=>t.querySelectorAll('.vt-opt').forEach(o=>o.classList.toggle('on',o.dataset.v===v)));
+    try{localStorage.setItem(KEY,v);}catch(e){}
+  }
+  tog.forEach(t=>t.addEventListener('click',e=>{
+    const o=e.target.closest('.vt-opt');if(o)apply(o.dataset.v);
+  }));
+  let init='tech';
+  try{init=localStorage.getItem(KEY)||'tech';}catch(e){}
+  apply(init);
+})();
+
+/* ================= Toast ================= */
+let toastTimer=null;
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),1800);
+}
+
+/* ================= 章节锚点复制 ================= */
+document.querySelectorAll('h2.sec-title').forEach(h=>{
+  const sec=h.closest('section');if(!sec||!sec.id)return;
+  const b=document.createElement('button');b.className='anchor-btn';b.type='button';
+  b.title='复制本章节链接';b.textContent='🔗';
+  b.addEventListener('click',e=>{
+    e.stopPropagation();
+    const url=location.href.split('#')[0]+'#'+sec.id;
+    const done=()=>toast('已复制章节链接：#'+sec.id);
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(done).catch(()=>fallback());}
+    else fallback();
+    function fallback(){
+      const ta=document.createElement('textarea');ta.value=url;document.body.appendChild(ta);
+      ta.select();try{document.execCommand('copy');done();}catch(err){toast('复制失败，请手动复制 #'+sec.id);}
+      ta.remove();
+    }
+  });
+  h.appendChild(b);
+});
+
+/* ================= FAQ 手风琴 ================= */
+document.querySelectorAll('.faq').forEach(f=>{
+  const q=f.querySelector('.faq-q'),a=f.querySelector('.faq-a');
+  q.addEventListener('click',()=>{
+    const open=f.classList.toggle('open');
+    a.style.maxHeight=open?a.scrollHeight+'px':'0';
+  });
+});
+
+/* ================= 假绿攻防演示 ================= */
+(function(){
+  const d=document.getElementById('atkDemo');if(!d)return;
+  const btns=d.querySelectorAll('.atk-btn');
+  function setState(s){
+    const atk=s==='attack';
+    d.classList.toggle('attacked',atk);
+    btns.forEach(b=>{
+      b.classList.toggle('on-red',atk&&b.dataset.s==='attack');
+      b.classList.toggle('on-green',!atk&&b.dataset.s==='normal');
+    });
+    d.querySelectorAll('.atk-col li').forEach(li=>{
+      li.textContent=atk?(li.dataset.a||li.dataset.t):li.dataset.t;
+    });
+    const vs=d.querySelectorAll('[data-v]');
+    vs[0].className='atk-verdict '+(atk?'v-fail':'v-pass');
+    vs[0].textContent=atk?'后果：虚报与缺证据被掩盖，带病版本流出':'结论：全绿，予以归档';
+    vs[1].className='atk-verdict '+(atk?'v-block':'v-pass');
+    vs[1].textContent=atk?'结论：整体 FAIL，禁止归档（攻击被拦截）':'结论：全绿，且可被第三方复核';
+  }
+  btns.forEach(b=>b.addEventListener('click',()=>setState(b.dataset.s)));
+  setState('attack');
+})();
+
+/* ================= 全文搜索（导航过滤 + 正文高亮 + 章节淡化） ================= */
+(function(){
+  const input=document.getElementById('navSearch');if(!input)return;
+  const navLinks=[...document.querySelectorAll('.sidenav a')];
+  const secEls=navLinks.map(a=>a.getAttribute('href')).filter(h=>h&&h[0]==='#').map(h=>document.querySelector(h)).filter(Boolean);
+  let lastMarked=[];
+  function clearMarks(){
+    lastMarked.forEach(m=>{
+      const p=m.parentNode;p.replaceChild(document.createTextNode(m.textContent),m);p.normalize();
+    });
+    lastMarked=[];
+  }
+  function esc(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+  function apply(q){
+    clearMarks();
+    secEls.forEach(s=>s.style.opacity='');
+    navLinks.forEach(a=>a.classList.remove('nav-dim'));
+    if(!q)return;
+    const ql=q.toLowerCase();
+    const hitSec=new Set();
+    secEls.forEach(s=>{
+      const hit=(s.textContent||'').toLowerCase().includes(ql);
+      if(hit)hitSec.add(s.id);
+    });
+    navLinks.forEach((a,i)=>{
+      const sec=secEls[i];
+      const labelHit=a.textContent.toLowerCase().includes(ql);
+      const hit=(sec&&hitSec.has(sec.id))||labelHit;
+      a.classList.toggle('nav-dim',!hit);
+      if(sec&&!hit)sec.style.opacity='.18';
+    });
+    // 正文高亮（限文本节点，跳过脚本样式）
+    const re=new RegExp(esc(q),'gi');
+    const walker=document.createTreeWalker(document.querySelector('.main'),NodeFilter.SHOW_TEXT,{
+      acceptNode(n){
+        if(!n.nodeValue||!n.nodeValue.toLowerCase().includes(ql))return NodeFilter.FILTER_REJECT;
+        const p=n.parentElement;if(!p)return NodeFilter.FILTER_REJECT;
+        if(/^(SCRIPT|STYLE|MARK)$/.test(p.tagName))return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }});
+    const nodes=[];let n;
+    while((n=walker.nextNode())&&lastMarked.length<300)nodes.push(n);
+    nodes.forEach(tn=>{
+      const frag=document.createDocumentFragment();
+      let last=0;tn.nodeValue.replace(re,(m,off)=>{
+        frag.appendChild(document.createTextNode(tn.nodeValue.slice(last,off)));
+        const mk=document.createElement('mark');mk.className='srch';mk.textContent=m;
+        frag.appendChild(mk);lastMarked.push(mk);last=off+m.length;return m;
+      });
+      frag.appendChild(document.createTextNode(tn.nodeValue.slice(last)));
+      tn.parentNode.replaceChild(frag,tn);
+    });
+  }
+  input.addEventListener('input',()=>apply(input.value.trim()));
+  input.addEventListener('keydown',e=>{if(e.key==='Escape'){input.value='';apply('');input.blur();}});
+})();
+
+/* ================= 已读章节计数 ================= */
+(function(){
+  const el=document.getElementById('readCount');if(!el)return;
+  const navLinks=[...document.querySelectorAll('.sidenav a')];
+  const secEls=navLinks.map(a=>a.getAttribute('href')).filter(h=>h&&h[0]==='#').map(h=>document.querySelector(h)).filter(Boolean);
+  el.textContent='0/'+secEls.length;
+  const seen=new Set();
+  const ob=new IntersectionObserver(es=>es.forEach(e=>{
+    if(e.isIntersecting)seen.add(e.target.id);
+    el.textContent=seen.size+'/'+secEls.length;
+  }),{threshold:.15});
+  secEls.forEach(s=>ob.observe(s));
+})();
+
+/* ================= 移动端侧导航折叠 ================= */
+(function(){
+  const btn=document.getElementById('navToggle'),nav=document.getElementById('sidenav');
+  if(!btn||!nav)return;
+  btn.addEventListener('click',()=>nav.classList.toggle('open'));
+  nav.addEventListener('click',e=>{if(e.target.closest('a'))nav.classList.remove('open');});
+  document.addEventListener('click',e=>{
+    if(!nav.contains(e.target)&&e.target!==btn&&nav.classList.contains('open'))nav.classList.remove('open');
+  });
+})();
+
+/* ================= 闸门模拟器 ================= */
+(function(){
+  const root=document.getElementById('gateSim');if(!root)return;
+  const pipe=document.getElementById('gsimPipe'),pkt=document.getElementById('gsimPkt'),
+        log=document.getElementById('gsimLog'),go=document.getElementById('gsimGo'),
+        rst=document.getElementById('gsimReset');
+  const cards=[...root.querySelectorAll('.gsim-atk')];
+  const nodes=[...root.querySelectorAll('.gsim-node')];
+  const MAP={A:'G-15',B:'G-14',C:'G-13',D:'HASH'};
+  const LOGS={
+    A:'⛔ G-15 claims 对账：报告数字与源产物 sha256 重算不符，检出虚报，拦截',
+    B:'⛔ G-14 引用存在：报告引用的证据文件不存在 / 为空 / sha256 不一致，拦截',
+    C:'⛔ G-13 证据时效：产物新鲜度对账失败（历史 run 冒充本轮），拦截',
+    D:'⛔ 链式 hash + attest：归档产物指纹链断裂 / 复核重算不一致，拦截'};
+  let running=false,timers=[];
+  const wait=ms=>new Promise(r=>timers.push(setTimeout(r,ms)));
+  function centerX(node){return node.offsetLeft+node.offsetWidth/2;}
+  function out(html,cls){
+    const d=document.createElement('div');if(cls)d.className=cls;d.innerHTML=html;
+    log.appendChild(d);log.scrollTop=log.scrollHeight;
+  }
+  function moveTo(x,scale){
+    pkt.style.transform='translateX('+x+'px)'+(scale?' scale('+scale+')':'');
+  }
+  cards.forEach(c=>c.addEventListener('click',()=>{if(!running)c.classList.toggle('sel');}));
+  function reset(){
+    timers.forEach(clearTimeout);timers=[];running=false;
+    nodes.forEach(n=>n.classList.remove('hit'));
+    pkt.style.transition='none';pkt.style.opacity=0;moveTo(0);
+    void pkt.offsetWidth;pkt.style.transition='';
+    go.disabled=false;
+  }
+  rst.addEventListener('click',()=>{reset();out('<span class="lg-info">[重置] 流水线待命。</span>');});
+  go.addEventListener('click',async()=>{
+    if(running)return;
+    const sel=cards.filter(c=>c.classList.contains('sel')).map(c=>c.dataset.a);
+    if(!sel.length){out('<span class="lg-info">[提示] 请先点击选择至少一类攻击（可多选）。</span>');return;}
+    reset();running=true;go.disabled=true;
+    for(const a of sel){
+      const cname={A:'A 虚报数字',B:'B 证据缺失',C:'C 陈旧数据',D:'D 事后篡改'}[a];
+      out('<span class="lg-info">▶ 攻击 '+cname+' 注入报告流水线…</span>');
+      const hitKey=MAP[a];
+      let blocked=false;
+      for(const node of nodes){
+        moveTo(centerX(node));pkt.style.opacity=1;
+        await wait(640);
+        if(node.dataset.g===hitKey){
+          node.classList.add('hit');blocked=true;
+          pkt.style.transition='transform .25s,opacity .3s';
+          moveTo(centerX(node),2.8);pkt.style.opacity=0;
+          await wait(320);
+          pkt.style.transition='';moveTo(0);
+          out('<span class="lg-no">'+LOGS[a]+'</span>');
+          out('<span class="lg-info">　└ 结果：整体 FAIL，禁止归档。对应 attack_recheck 实测检出（14/14 全绿）。</span>');
+          await wait(500);
+          break;
+        }else{
+          const label=node.textContent.trim().replace(/\s+/g,' ');
+          out('<span class="lg-ok">　✓ 通过「'+label+'」（不防此类攻击，继续流转）</span>');
+        }
+      }
+      if(!blocked){out('<span class="lg-no">⚠ 异常：攻击未被拦截（不应发生）。</span>');}
+    }
+    out('<span class="lg-ok">■ 演示结束：所选 '+sel.length+' 类攻击全部被拦下，无任何假绿流入归档。</span>');
+    running=false;go.disabled=false;
+  });
+})();
+</script>
+<script>
+/* ================= 已读进度条（追加，不侵入既有逻辑） ================= */
+(function(){
+  const cnt=document.getElementById('readCount'),bar=document.getElementById('readBar');
+  if(!cnt||!bar)return;
+  function sync(){
+    const m=(cnt.textContent||'').match(/(\d+)\s*\/\s*(\d+)/);
+    if(m)bar.style.width=(+m[2]?Math.round(+m[1]/+m[2]*100):0)+'%';
+  }
+  new MutationObserver(sync).observe(cnt,{childList:true,characterData:true,subtree:true});
+  sync();
+})();
+</script>
+<script>
+/* V7 · 卡片微倾斜扩展 */
+document.querySelectorAll('.vcard,.layer,.faq').forEach(function(el){
+  el.addEventListener('mousemove',function(e){
+    var r=el.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
+    el.style.transform='translateY(-4px) perspective(900px) rotateX('+(-y*2.2)+'deg) rotateY('+(x*2.2)+'deg)';
+  });
+  el.addEventListener('mouseleave',function(){el.style.transform='';});
+});
+</script>
+<script>
+/* ===== 章节内 Tab 甲板 ===== */
+document.addEventListener('click',function(e){
+  var b=e.target.closest('.xtab'); if(!b)return;
+  var deck=b.closest('.xdeck'); if(!deck)return;
+  deck.querySelectorAll('.xtab').forEach(function(t){t.classList.remove('on');});
+  b.classList.add('on');
+  deck.querySelectorAll('.xpane').forEach(function(p){p.classList.remove('show');});
+  var pane=deck.querySelector('#'+b.getAttribute('data-pane'));
+  if(pane)pane.classList.add('show');
+});
+</script>
+</body>
+</html>

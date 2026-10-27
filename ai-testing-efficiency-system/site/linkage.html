@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>联动与拓展 · XX AI 工具体系</title>
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<div id="progress"></div>
+<div id="cursorGlow"></div>
+<nav class="topnav"><a class="brand" href="index.html">XX · AI 工具体系</a><a class="nl" href="index.html#matrix">工具矩阵</a><a class="nl" href="linkage.html">联动与拓展</a></nav>
+<div class="layout">
+<nav class="sidenav"><div class="slogo">🔗 联动<div class="sub">工具协同与未来方向</div></div><a href="#s1"><span class="ndot"></span>联动全景</a><a href="#s2"><span class="ndot"></span>已验证联动清单</a><a href="#s3"><span class="ndot"></span>缺陷闭环旅程（泳道）</a><a href="#s4"><span class="ndot"></span>知识飞轮</a><a href="#s5"><span class="ndot"></span>拓展路线图（产研全流程）</a><a href="#s6"><span class="ndot"></span>版本与一致性治理</a><a href="#s7"><span class="ndot"></span>FAQ</a></nav>
+<main class="main">
+<section class="reveal vis" style="margin:22px 0 40px">
+<div class="badge" style="display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line2);border-radius:999px;padding:6px 14px;font-size:12px;color:var(--dim)"><span style="width:8px;height:8px;border-radius:50%;background:#a78bff;display:inline-block"></span>体系篇 · 工具如何咬合，以及向哪里生长</div>
+<h1 style="font-size:34px;font-weight:900;margin:16px 0 10px">🔗 联动与拓展</h1>
+<p class="lead" style="color:var(--dim);font-size:15.5px;max-width:860px">单个工具解决单点问题，联动才构成体系。本页梳理已验证的工具间联动事实、缺陷闭环旅程、知识飞轮机制，以及产研全流程的三步拓展路线。</p>
+<div class="stats-row" style="margin-top:22px">
+<div class="stat-card"><div class="num" data-n="10">0</div><div class="lbl">已验证联动事实</div></div>
+<div class="stat-card"><div class="num" data-n="5">0</div><div class="lbl">共享契约/schema</div></div>
+<div class="stat-card"><div class="num" data-n="3">0</div><div class="lbl">拓展路线阶段</div></div>
+<div class="stat-card"><div class="num" data-n="5">0</div><div class="lbl">一致性治理规则</div></div>
+</div></section>
+
+<section id="s1" class="reveal">
+<h2 class="sec-title">01 · 联动全景</h2>
+<p class="sec-sub">工具间的连接不是「集成」，而是「契约」：schema 同款、编号全局一致、通道共享、知识同源。</p>
+<svg viewBox="0 0 1160 330" style="width:100%;max-width:1160px;display:block;margin:14px 0" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="lk-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#3ee6d6"/></marker></defs>
+<g font-family="inherit" font-size="12">
+<rect x="30" y="30" width="200" height="56" rx="10" fill="#3ee6d6" fill-opacity=".12" stroke="#3ee6d6" stroke-opacity=".6"/><text x="130" y="53" text-anchor="middle" fill="#e8ecf4" font-weight="700">prd-toolkit</text><text x="130" y="72" text-anchor="middle" fill="#9aa3b5" font-size="10.5">F-xx 功能点编号</text>
+<rect x="30" y="120" width="200" height="56" rx="10" fill="#a78bff" fill-opacity=".12" stroke="#a78bff" stroke-opacity=".6"/><text x="130" y="143" text-anchor="middle" fill="#e8ecf4" font-weight="700">rv-toolkit</text><text x="130" y="162" text-anchor="middle" fill="#9aa3b5" font-size="10.5">评审通过 = 规格前置</text>
+<rect x="300" y="75" width="220" height="56" rx="10" fill="#5b9dff" fill-opacity=".12" stroke="#5b9dff" stroke-opacity=".6"/><text x="410" y="98" text-anchor="middle" fill="#e8ecf4" font-weight="700">xx-spec-writing + toolkit</text><text x="410" y="117" text-anchor="middle" fill="#9aa3b5" font-size="10.5">AC-TR / API-TR / 编码指令集</text>
+<rect x="590" y="30" width="200" height="56" rx="10" fill="#3ee6d6" fill-opacity=".1" stroke="#3ee6d6" stroke-opacity=".5"/><text x="690" y="53" text-anchor="middle" fill="#e8ecf4" font-weight="700">xx-spec-coding</text><text x="690" y="72" text-anchor="middle" fill="#9aa3b5" font-size="10.5">范围表达式 + 三闸门</text>
+<rect x="590" y="120" width="200" height="56" rx="10" fill="#3ee6d6" fill-opacity=".1" stroke="#3ee6d6" stroke-opacity=".5"/><text x="690" y="143" text-anchor="middle" fill="#e8ecf4" font-weight="700">unit-test-selfcheck</text><text x="690" y="162" text-anchor="middle" fill="#9aa3b5" font-size="10.5">scope_report + BUG 编号</text>
+<rect x="860" y="30" width="220" height="56" rx="10" fill="#ffb454" fill-opacity=".12" stroke="#ffb454" stroke-opacity=".6"/><text x="970" y="53" text-anchor="middle" fill="#e8ecf4" font-weight="700">tc-toolkit</text><text x="970" y="72" text-anchor="middle" fill="#9aa3b5" font-size="10.5">手工用例 T-xx</text>
+<rect x="860" y="120" width="220" height="56" rx="10" fill="#ffb454" fill-opacity=".12" stroke="#ffb454" stroke-opacity=".6"/><text x="970" y="143" text-anchor="middle" fill="#e8ecf4" font-weight="700">E2E-ATW</text><text x="970" y="162" text-anchor="middle" fill="#9aa3b5" font-size="10.5">G-xx 21 道闸门</text>
+<rect x="860" y="230" width="220" height="56" rx="10" fill="#ff6b81" fill-opacity=".1" stroke="#ff6b81" stroke-opacity=".5"/><text x="970" y="253" text-anchor="middle" fill="#e8ecf4" font-weight="700">defect-hunter</text><text x="970" y="272" text-anchor="middle" fill="#9aa3b5" font-size="10.5">四层漏斗定位</text>
+<rect x="590" y="230" width="200" height="56" rx="10" fill="#5b9dff" fill-opacity=".1" stroke="#5b9dff" stroke-opacity=".5"/><text x="690" y="253" text-anchor="middle" fill="#e8ecf4" font-weight="700">db-query-assistant</text><text x="690" y="272" text-anchor="middle" fill="#9aa3b5" font-size="10.5">共享只读通道</text>
+<rect x="300" y="230" width="220" height="56" rx="10" fill="#a78bff" fill-opacity=".1" stroke="#a78bff" stroke-opacity=".5"/><text x="410" y="253" text-anchor="middle" fill="#e8ecf4" font-weight="700">XX 知识库（双库）</text><text x="410" y="272" text-anchor="middle" fill="#9aa3b5" font-size="10.5">业务口径总库 · 七步法</text>
+<line x1="230" y1="58" x2="296" y2="88" stroke="#3ee6d6" stroke-width="1.4" marker-end="url(#lk-ar)"/>
+<line x1="230" y1="148" x2="296" y2="118" stroke="#3ee6d6" stroke-width="1.4" marker-end="url(#lk-ar)"/>
+<line x1="520" y1="92" x2="586" y2="60" stroke="#3ee6d6" stroke-width="1.4" marker-end="url(#lk-ar)"/>
+<line x1="520" y1="115" x2="586" y2="145" stroke="#3ee6d6" stroke-width="1.4" marker-end="url(#lk-ar)"/>
+<line x1="790" y1="58" x2="856" y2="55" stroke="#3ee6d6" stroke-width="1.4" marker-end="url(#lk-ar)"/>
+<line x1="790" y1="148" x2="856" y2="148" stroke="#3ee6d6" stroke-width="1.4" marker-end="url(#lk-ar)"/>
+<line x1="970" y1="176" x2="970" y2="226" stroke="#ff6b81" stroke-width="1.4" marker-end="url(#lk-ar)"/>
+<line x1="860" y1="258" x2="794" y2="258" stroke="#5b9dff" stroke-width="1.4" marker-end="url(#lk-ar)"/>
+<line x1="586" y1="258" x2="524" y2="258" stroke="#a78bff" stroke-width="1.4" marker-end="url(#lk-ar)"/>
+<path d="M 690 230 C 690 205 690 190 690 180" stroke="#5b9dff" stroke-width="1.2" stroke-dasharray="4 3" fill="none" marker-end="url(#lk-ar)"/>
+<path d="M 410 230 C 410 205 410 150 410 135" stroke="#a78bff" stroke-width="1.2" stroke-dasharray="4 3" fill="none" marker-end="url(#lk-ar)"/>
+<text x="580" y="315" text-anchor="middle" fill="#5b6478" font-size="11.5">实线 = 产物契约（schema/编号）；虚线 = 通道与知识支撑（共享只读通道 / 业务口径核验）</text>
+</g></svg>
+</section>
+<section id="s2" class="reveal">
+<h2 class="sec-title">02 · 已验证联动清单</h2>
+<p class="sec-sub">以下联动全部来自源码与文档核实，不是规划。</p>
+<div class="linkv-grid"><div class="linkv"><div class="lv-h"><span class="lv-n">01</span><span class="lv-t">unit-test-selfcheck → E2E-ATW</span></div><div class="lv-d">scope_report.json 同款 schema，双源补用例</div><span class="lv-ok">✅ 已验证</span></div><div class="linkv"><div class="lv-h"><span class="lv-n">02</span><span class="lv-t">缺陷编号 BUG-YYYYMMDD-NNN 全局一致</span></div><div class="lv-d">一次生成不改号，贯通自检/定位/E2E 回归</div><span class="lv-ok">✅ 已验证</span></div><div class="linkv"><div class="lv-h"><span class="lv-n">03</span><span class="lv-t">db-query-assistant 被三工具复用</span></div><div class="lv-d">query_runner.py 共享只读通道</div><span class="lv-ok">✅ 已验证</span></div><div class="linkv"><div class="lv-h"><span class="lv-n">04</span><span class="lv-t">xx-spec-writing 复用 spec-toolkit</span></div><div class="lv-d">audit/verify/diff 命令行直调</div><span class="lv-ok">✅ 已验证</span></div><div class="linkv"><div class="lv-h"><span class="lv-n">05</span><span class="lv-t">xx-spec-coding 复用 fe-code-check</span></div><div class="lv-d">F-1~F-4 前端代码闸门</div><span class="lv-ok">✅ 已验证</span></div><div class="linkv"><div class="lv-h"><span class="lv-n">06</span><span class="lv-t">prd-toolkit ↔ 知识库</span></div><div class="lv-d">kb_root 业务口径核验基准</div><span class="lv-ok">✅ 已验证</span></div><div class="linkv"><div class="lv-h"><span class="lv-n">07</span><span class="lv-t">规格书 AC-TR → 用例体系</span></div><div class="lv-d">9.1 节验收标准是 tc/E2E 共同上游</div><span class="lv-ok">✅ 已验证</span></div><div class="linkv"><div class="lv-h"><span class="lv-n">08</span><span class="lv-t">defect-hunter 规则被单测自检复用</span></div><div class="lv-d">扫描规则一处维护</div><span class="lv-ok">✅ 已验证</span></div><div class="linkv"><div class="lv-h"><span class="lv-n">09</span><span class="lv-t">E2E 缺陷 → defect-hunter → 回归用例</span></div><div class="lv-d">每 BUG ≥1 条回归用例</div><span class="lv-ok">✅ 已验证</span></div><div class="linkv"><div class="lv-h"><span class="lv-n">10</span><span class="lv-t">知识生命周期机制同源</span></div><div class="lv-d">0.9^months 置信衰减 + <0.3 休眠</div><span class="lv-ok">✅ 已验证</span></div></div>
+</section>
+<section id="s3" class="reveal">
+<h2 class="sec-title">03 · 缺陷闭环旅程（泳道）</h2>
+<p class="sec-sub">以 PROJ-179 假绿案例为原型的缺陷全生命周期：发现 → 定位 → 修复 → 反哺，四道防线环环相扣。</p>
+<svg viewBox="0 0 1160 260" style="width:100%;max-width:1160px;display:block;margin:14px 0" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="lk-ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#9aa3b5"/></marker></defs>
+<g font-family="inherit" font-size="12">
+<rect x="20" y="20" width="1120" height="50" rx="10" fill="#161b27" stroke="#2a3346"/><text x="36" y="50" fill="#ffb454" font-weight="700">发现（E2E-ATW）</text>
+<rect x="20" y="80" width="1120" height="50" rx="10" fill="#161b27" stroke="#2a3346"/><text x="36" y="110" fill="#ff6b81" font-weight="700">定位（defect-hunter）</text>
+<rect x="20" y="140" width="1120" height="50" rx="10" fill="#161b27" stroke="#2a3346"/><text x="36" y="170" fill="#3ee6d6" font-weight="700">修复（spec-coding）</text>
+<rect x="20" y="200" width="1120" height="50" rx="10" fill="#161b27" stroke="#2a3346"/><text x="36" y="230" fill="#a78bff" font-weight="700">反哺（用例 + 知识库）</text>
+<g fill="#e8ecf4" font-size="11.5">
+<circle cx="300" cy="45" r="13" fill="#ffb454" fill-opacity=".2" stroke="#ffb454"/><text x="300" y="49" text-anchor="middle">1</text><text x="324" y="49">G 闸门 FAIL，证据链锁定（G-13 证据时效）</text>
+<circle cx="300" cy="105" r="13" fill="#ff6b81" fill-opacity=".2" stroke="#ff6b81"/><text x="300" y="109" text-anchor="middle">2</text><text x="324" y="109">67 症状路由 → grep → 日志 L3 → AI 研判 → DB L2</text>
+<circle cx="300" cy="165" r="13" fill="#3ee6d6" fill-opacity=".2" stroke="#3ee6d6"/><text x="300" y="169" text-anchor="middle">3</text><text x="324" y="169">范围表达式圈定行号，红线约束修复，三闸门验证</text>
+<circle cx="300" cy="225" r="13" fill="#a78bff" fill-opacity=".2" stroke="#a78bff"/><text x="300" y="229" text-anchor="middle">4</text><text x="324" y="229">BUG 编号反哺 code_test_points，每 BUG ≥1 条 E2E 回归用例；踩坑知识入库</text>
+</g>
+<line x1="300" y1="58" x2="300" y2="92" stroke="#9aa3b5" stroke-width="1.2" marker-end="url(#lk-ar2)"/>
+<line x1="300" y1="118" x2="300" y2="152" stroke="#9aa3b5" stroke-width="1.2" marker-end="url(#lk-ar2)"/>
+<line x1="300" y1="178" x2="300" y2="212" stroke="#9aa3b5" stroke-width="1.2" marker-end="url(#lk-ar2)"/>
+</g></svg>
+<div class="biz-note"><span class="bi">💼</span><div><b>闭环的价值：</b>一个缺陷不只被修掉——它变成一条永久的回归用例、一条症状路由、一条踩坑知识。<b>体系的防御力随踩坑次数单调增长。</b></div></div>
+</section>
+<section id="s4" class="reveal">
+<h2 class="sec-title">04 · 知识飞轮</h2>
+<p class="sec-sub">E2E-ATW 的 learn.py 反馈飞轮与知识库七步法是同一套生命周期的两种形态。</p>
+<svg viewBox="0 0 1160 380" style="width:100%;max-width:1160px;display:block;margin:14px 0" xmlns="http://www.w3.org/2000/svg"><g font-family="inherit"><circle cx="300" cy="190" r="120" fill="none" stroke="#2a3346" stroke-width="1.6"/><circle cx="300" cy="190" r="120" fill="none" stroke="#3ee6d6" stroke-opacity=".4" stroke-width="1.6" stroke-dasharray="8 10"><animateTransform attributeName="transform" type="rotate" from="0 300 190" to="360 300 190" dur="24s" repeatCount="indefinite"/></circle><circle cx="300" cy="190" r="52" fill="#0d1320" stroke="#3ee6d6" stroke-opacity=".7" stroke-width="2"/><text x="300" y="186" text-anchor="middle" fill="#3ee6d6" font-size="14.5" font-weight="900">知识飞轮</text><text x="300" y="204" text-anchor="middle" fill="#9aa3b5" font-size="10.5">越用越准 · 防腐自洁</text><circle cx="300" cy="70" r="26" fill="#0d1320" stroke="#3ee6d6" stroke-width="2"><animate attributeName="r" values="26;29;26" dur="3s" begin="0.0s" repeatCount="indefinite"/></circle><text x="300" y="74" text-anchor="middle" fill="#3ee6d6" font-size="12" font-weight="800">采集</text><rect x="560" y="52" width="560" height="42" rx="10" fill="#161b27" stroke="#2a3346"/><rect x="560" y="52" width="4" height="42" rx="2" fill="#3ee6d6"/><text x="582" y="79" fill="#3ee6d6" font-size="12.5" font-weight="800">采集</text><text x="680" y="79" fill="#9aa3b5" font-size="12">交付/评审/缺陷 → 候选</text><circle cx="404" cy="130" r="26" fill="#0d1320" stroke="#5b9dff" stroke-width="2"><animate attributeName="r" values="26;29;26" dur="3s" begin="0.5s" repeatCount="indefinite"/></circle><text x="404" y="134" text-anchor="middle" fill="#5b9dff" font-size="12" font-weight="800">核验</text><rect x="560" y="106" width="560" height="42" rx="10" fill="#161b27" stroke="#2a3346"/><rect x="560" y="106" width="4" height="42" rx="2" fill="#5b9dff"/><text x="582" y="133" fill="#5b9dff" font-size="12.5" font-weight="800">核验</text><text x="680" y="133" fill="#9aa3b5" font-size="12">冲突检测 + 事实核验</text><circle cx="404" cy="250" r="26" fill="#0d1320" stroke="#a78bff" stroke-width="2"><animate attributeName="r" values="26;29;26" dur="3s" begin="1.0s" repeatCount="indefinite"/></circle><text x="404" y="254" text-anchor="middle" fill="#a78bff" font-size="12" font-weight="800">入库</text><rect x="560" y="160" width="560" height="42" rx="10" fill="#161b27" stroke="#2a3346"/><rect x="560" y="160" width="4" height="42" rx="2" fill="#a78bff"/><text x="582" y="187" fill="#a78bff" font-size="12.5" font-weight="800">入库</text><text x="680" y="187" fill="#9aa3b5" font-size="12">按域归档编号 · 引用留痕</text><circle cx="300" cy="310" r="26" fill="#0d1320" stroke="#ffb454" stroke-width="2"><animate attributeName="r" values="26;29;26" dur="3s" begin="1.5s" repeatCount="indefinite"/></circle><text x="300" y="314" text-anchor="middle" fill="#ffb454" font-size="12" font-weight="800">保鲜</text><rect x="560" y="214" width="560" height="42" rx="10" fill="#161b27" stroke="#2a3346"/><rect x="560" y="214" width="4" height="42" rx="2" fill="#ffb454"/><text x="582" y="241" fill="#ffb454" font-size="12.5" font-weight="800">保鲜</text><text x="680" y="241" fill="#9aa3b5" font-size="12">置信 0.9^months 衰减</text><circle cx="196" cy="250" r="26" fill="#0d1320" stroke="#ff6b81" stroke-width="2"><animate attributeName="r" values="26;29;26" dur="3s" begin="2.0s" repeatCount="indefinite"/></circle><text x="196" y="254" text-anchor="middle" fill="#ff6b81" font-size="12" font-weight="800">淘汰</text><rect x="560" y="268" width="560" height="42" rx="10" fill="#161b27" stroke="#2a3346"/><rect x="560" y="268" width="4" height="42" rx="2" fill="#ff6b81"/><text x="582" y="295" fill="#ff6b81" font-size="12.5" font-weight="800">淘汰</text><text x="680" y="295" fill="#9aa3b5" font-size="12">失效归档移除</text><circle cx="196" cy="130" r="26" fill="#0d1320" stroke="#3ee6d6" stroke-width="2"><animate attributeName="r" values="26;29;26" dur="3s" begin="2.5s" repeatCount="indefinite"/></circle><text x="196" y="134" text-anchor="middle" fill="#3ee6d6" font-size="12" font-weight="800">回流</text><rect x="560" y="322" width="560" height="42" rx="10" fill="#161b27" stroke="#2a3346"/><rect x="560" y="322" width="4" height="42" rx="2" fill="#3ee6d6"/><text x="582" y="349" fill="#3ee6d6" font-size="12.5" font-weight="800">回流</text><text x="680" y="349" fill="#9aa3b5" font-size="12">定位器/案例回流 · 越用越稳</text></g></svg>
+</section>
+<section id="s5" class="reveal">
+<h2 class="sec-title">05 · 拓展路线图（产研全流程）</h2>
+<p class="sec-sub">三步走主线 + 三条能力纵深专项。不设时间线，优先级由真实痛点驱动。</p>
+<svg viewBox="0 0 1160 150" style="width:100%;max-width:1160px;display:block;margin:14px 0" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="rm-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#5b6478"/></marker></defs>
+<g font-family="inherit">
+<rect x="20" y="26" width="340" height="96" rx="14" fill="#3ee6d6" fill-opacity=".1" stroke="#3ee6d6" stroke-opacity=".6"/>
+<text x="190" y="58" text-anchor="middle" fill="#3ee6d6" font-size="15" font-weight="800">近期 · 契约统一与平台接通</text>
+<text x="190" y="84" text-anchor="middle" fill="#9aa3b5" font-size="11.5">内部 schema 固化 · PingCode/飞书一期接入</text>
+<line x1="366" y1="74" x2="404" y2="74" stroke="#5b6478" stroke-width="1.6" marker-end="url(#rm-ar)"/>
+<rect x="410" y="26" width="340" height="96" rx="14" fill="#5b9dff" fill-opacity=".1" stroke="#5b9dff" stroke-opacity=".6"/>
+<text x="580" y="58" text-anchor="middle" fill="#5b9dff" font-size="15" font-weight="800">中期 · 需求承接与评审铺展</text>
+<text x="580" y="84" text-anchor="middle" fill="#9aa3b5" font-size="11.5">工作项全生命周期 · 评审模型走向全团队</text>
+<line x1="756" y1="74" x2="794" y2="74" stroke="#5b6478" stroke-width="1.6" marker-end="url(#rm-ar)"/>
+<rect x="800" y="26" width="340" height="96" rx="14" fill="#a78bff" fill-opacity=".1" stroke="#a78bff" stroke-opacity=".6"/>
+<text x="970" y="58" text-anchor="middle" fill="#a78bff" font-size="15" font-weight="800">远期 · 产研一张网</text>
+<text x="970" y="84" text-anchor="middle" fill="#9aa3b5" font-size="11.5">需求进资产出全自动 · AI 研发质量中台</text>
+</g></svg>
+<div style="display:flex;flex-direction:column;gap:12px;margin-top:12px">
+<div class="card" style="padding:16px 18px"><div style="font-weight:700;color:#3ee6d6;margin-bottom:6px">近期 · 契约统一与平台接通</div><div style="color:var(--dim);font-size:13.5px;line-height:1.9">
+◆ 共享契约（scope_report schema、BUG 编号、验收标准上游编号）固化为体系级规范，层间准入全面脚本化<br>
+◆ <b style="color:var(--txt)">PingCode 打通一期</b>：需求/任务/缺陷工作项与工具体系双向同步，编号互相绑定<br>
+◆ <b style="color:var(--txt)">飞书打通一期</b>：验收 FAIL、评审结论、财务核对通报自动推送到群，结论先行、@到人</div></div>
+<div class="card" style="padding:16px 18px"><div style="font-weight:700;color:#5b9dff;margin-bottom:6px">中期 · 需求承接与评审铺展</div><div style="color:var(--dim);font-size:13.5px;line-height:1.9">
+◆ <b style="color:var(--txt)">承接 PingCode/飞书需求</b>：AI 自动分析澄清——识别歧义点、生成澄清问题清单、回流确认后自动进入 PRD 生产与详细设计<br>
+◆ <b style="color:var(--txt)">工作项全生命周期管理</b>：创建 / 拆分 / 指派 / 状态回写；工具链产物（PRD、规格书、用例、自检报告、E2E 证据链）自动绑定到工作项，可追溯、可分析<br>
+◆ <b style="color:var(--txt)">评审模型从测试向全团队铺展</b>：需求评审、设计评审、代码评审、发布评审，复用「引用溯源 + 结论三选一 + 闭环率」的 R-xx 范式<br>
+◆ 检查点阈值随案例积累自校准，知识飞轮跨工具打通</div></div>
+<div class="card" style="padding:16px 18px"><div style="font-weight:700;color:#a78bff;margin-bottom:6px">远期 · 产研一张网</div><div style="color:var(--dim);font-size:13.5px;line-height:1.9">
+◆ 需求单号进、可审计资产出的全自动流转，110+ 检查点统一编排与统一审计视图<br>
+◆ 工作项数据反哺质量度量与排期预测，体系对外输出为「AI 研发质量中台」</div></div>
+</div>
+<h3 style="font-size:17px;font-weight:800;margin:26px 0 4px;color:var(--txt)">专项能力加强</h3>
+<p class="sec-sub">与主线并行的三条能力纵深线，各自独立交付价值。</p>
+<div class="pillars">
+<div class="pillar" style="--pc:rgba(62,230,214,.13);--pb:#3ee6d6"><span class="tag">专项一</span><h3>BI 视图自动化搭建</h3><p>把 BI 知识库的指标口径与数据字典变成可机械生成的报表视图：指标定义 → 视图骨架 → 取数 SQL（走只读通道）→ 口径核验 → 可视化交付。BI 开发从「拖拖拽拽加人工对数」变成「口径即视图，视图即可核验」。</p></div>
+<div class="pillar" style="--pc:rgba(255,180,84,.13);--pb:#ffb454"><span class="tag">专项二</span><h3>竞品与财务知识扩展</h3><p>知识层横向扩容：竞品功能对标与差异化素材入库，财务准则/税法/实操口径系统化沉淀。需求分析阶段即可调用——「竞品怎么做的、财务口径允不允许」成为 PRD 撰写与评审的默认事实基。</p></div>
+<div class="pillar" style="--pc:rgba(255,107,129,.13);--pb:#ff6b81"><span class="tag">专项三</span><h3>AI Coding 强化</h3><p>在「范围机械圈定 + 红线 + 三闸门」的框架内持续增强生成力：多文件协同编辑、存量代码风格学习、编码同时自动生成/更新单测、缺陷预测与热点预警。效率上限持续抬高，确定性底线一寸不让。</p></div>
+<div class="pillar" style="--pc:rgba(255,180,84,.13);--pb:#ffb454"><span class="tag">专项四</span><h3>系统初始化实施工具化</h3><p>将《客户初始化流程》（A~E 方案、四段式节点、BLOCK 门禁）与《实施与初始化手册》（上线五阶段、数据模板、期初导入与 UAT）沉淀为 init-toolkit：方案选择 → 节点 scaffold → 逐节点校验 → 初始化验收报告，全程机器验收。</p></div>
+</div>
+<h3 style="font-size:17px;font-weight:800;margin:26px 0 4px;color:var(--txt)">专项四蓝图 · 初始化实施工具（规划中）</h3>
+<p class="sec-sub">知识内容已完成结构化盘点，未来按体系三公理封装：模板锚点固化节点序列、校验点族 I-xx 机器验收、结论入验收网。</p>
+<svg viewBox="0 0 1160 440" style="width:100%;max-width:1160px;display:block;margin:16px 0" xmlns="http://www.w3.org/2000/svg"><defs><marker id="in-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#5b6478"/></marker></defs><g font-family="inherit"><text x="20" y="26" fill="#5b6478" font-size="11.5" letter-spacing="2">实施五阶段（源自实施手册）</text><rect x="20" y="38" width="204" height="72" rx="12" fill="#5b9dff" fill-opacity=".08" stroke="#5b9dff" stroke-opacity=".55"/><text x="34" y="66" fill="#5b9dff" font-size="13" font-weight="800">数据收集规范化</text><text x="34" y="88" fill="#9aa3b5" font-size="10.5">T1~T3 模板 · 口径清洗</text><line x1="226" y1="74" x2="244" y2="74" stroke="#5b6478" stroke-width="1.5" stroke-dasharray="5 4" class="flowline" marker-end="url(#in-ar)"/><rect x="248" y="38" width="204" height="72" rx="12" fill="#3ee6d6" fill-opacity=".08" stroke="#3ee6d6" stroke-opacity=".55"/><text x="262" y="66" fill="#3ee6d6" font-size="13" font-weight="800">平台侧初始化</text><text x="262" y="88" fill="#9aa3b5" font-size="10.5">商户入驻 · 资质 · 类目</text><line x1="454" y1="74" x2="472" y2="74" stroke="#5b6478" stroke-width="1.5" stroke-dasharray="5 4" class="flowline" marker-end="url(#in-ar)"/><rect x="476" y="38" width="204" height="72" rx="12" fill="#a78bff" fill-opacity=".08" stroke="#a78bff" stroke-opacity=".55"/><text x="490" y="66" fill="#a78bff" font-size="13" font-weight="800">组织与权限</text><text x="490" y="88" fill="#9aa3b5" font-size="10.5">组织树 → 岗位角色 → 账号</text><line x1="682" y1="74" x2="700" y2="74" stroke="#5b6478" stroke-width="1.5" stroke-dasharray="5 4" class="flowline" marker-end="url(#in-ar)"/><rect x="704" y="38" width="204" height="72" rx="12" fill="#ffb454" fill-opacity=".08" stroke="#ffb454" stroke-opacity=".55"/><text x="718" y="66" fill="#ffb454" font-size="13" font-weight="800">主数据</text><text x="718" y="88" fill="#9aa3b5" font-size="10.5">商品/服务/仓库/资产分类</text><line x1="910" y1="74" x2="928" y2="74" stroke="#5b6478" stroke-width="1.5" stroke-dasharray="5 4" class="flowline" marker-end="url(#in-ar)"/><rect x="932" y="38" width="204" height="72" rx="12" fill="#ff6b81" fill-opacity=".08" stroke="#ff6b81" stroke-opacity=".55"/><text x="946" y="66" fill="#ff6b81" font-size="13" font-weight="800">期初导入与切换</text><text x="946" y="88" fill="#9aa3b5" font-size="10.5">期初库存/财务 → UAT → 上线</text><text x="20" y="146" fill="#5b6478" font-size="11.5" letter-spacing="2">初始化四段式节点序列（源自客户初始化流程 · 强依赖链）</text><rect x="20" y="158" width="260" height="60" rx="12" fill="#3ee6d6" fill-opacity=".1" stroke="#3ee6d6" stroke-opacity=".6"/><text x="36" y="182" fill="#3ee6d6" font-size="12.5" font-weight="800">① 组织段（26 节点）</text><text x="36" y="202" fill="#9aa3b5" font-size="10.5">租户开通→架构→角色→账号→审计</text><line x1="284" y1="188" x2="308" y2="188" stroke="#5b6478" stroke-width="1.5" stroke-dasharray="5 4" class="flowline" marker-end="url(#in-ar)"/><rect x="312" y="158" width="240" height="60" rx="12" fill="#5b9dff" fill-opacity=".1" stroke="#5b9dff" stroke-opacity=".6"/><text x="328" y="182" fill="#5b9dff" font-size="12.5" font-weight="800">② 业务领域段</text><text x="328" y="202" fill="#9aa3b5" font-size="10.5">按方案启用领域主数据</text><line x1="556" y1="188" x2="580" y2="188" stroke="#5b6478" stroke-width="1.5" stroke-dasharray="5 4" class="flowline" marker-end="url(#in-ar)"/><rect x="584" y="158" width="240" height="60" rx="12" fill="#a78bff" fill-opacity=".1" stroke="#a78bff" stroke-opacity=".6"/><text x="600" y="182" fill="#a78bff" font-size="12.5" font-weight="800">③ 资产实物段</text><text x="600" y="202" fill="#9aa3b5" font-size="10.5">分类→规范→实物卡→折旧方法</text><line x1="828" y1="188" x2="852" y2="188" stroke="#5b6478" stroke-width="1.5" stroke-dasharray="5 4" class="flowline" marker-end="url(#in-ar)"/><rect x="856" y="158" width="272" height="60" rx="12" fill="#ffb454" fill-opacity=".1" stroke="#ffb454" stroke-opacity=".6"/><text x="872" y="182" fill="#ffb454" font-size="12.5" font-weight="800">④ 业务配置段</text><text x="872" y="202" fill="#9aa3b5" font-size="10.5">运行时参数 · 三开关（审批/合同/结算）</text><text x="20" y="254" fill="#5b6478" font-size="11.5" letter-spacing="2">方案矩阵（A~E 按对接维度取舍）</text><rect x="20" y="266" width="204" height="52" rx="11" fill="#161b27" stroke="#3ee6d6" stroke-opacity=".55"/><circle cx="44" cy="292" r="13" fill="#3ee6d6" fill-opacity=".15" stroke="#3ee6d6"/><text x="44" y="297" text-anchor="middle" fill="#3ee6d6" font-size="12.5" font-weight="900">A</text><text x="66" y="288" fill="#c9d2e0" font-size="10.5">资产实物+设备运维+</text><text x="66" y="304" fill="#9aa3b5" font-size="10.5">工单</text><rect x="248" y="266" width="204" height="52" rx="11" fill="#161b27" stroke="#5b9dff" stroke-opacity=".55"/><circle cx="272" cy="292" r="13" fill="#5b9dff" fill-opacity=".15" stroke="#5b9dff"/><text x="272" y="297" text-anchor="middle" fill="#5b9dff" font-size="12.5" font-weight="900">B</text><text x="294" y="288" fill="#c9d2e0" font-size="10.5">业财一体·对接外部财</text><text x="294" y="304" fill="#9aa3b5" font-size="10.5">务</text><rect x="476" y="266" width="204" height="52" rx="11" fill="#161b27" stroke="#a78bff" stroke-opacity=".55"/><circle cx="500" cy="292" r="13" fill="#a78bff" fill-opacity=".15" stroke="#a78bff"/><text x="500" y="297" text-anchor="middle" fill="#a78bff" font-size="12.5" font-weight="900">C</text><text x="522" y="288" fill="#c9d2e0" font-size="10.5">内部记账·三开关·含</text><text x="522" y="304" fill="#9aa3b5" font-size="10.5">库存</text><rect x="704" y="266" width="204" height="52" rx="11" fill="#161b27" stroke="#ffb454" stroke-opacity=".55"/><circle cx="728" cy="292" r="13" fill="#ffb454" fill-opacity=".15" stroke="#ffb454"/><text x="728" y="297" text-anchor="middle" fill="#ffb454" font-size="12.5" font-weight="900">D</text><text x="750" y="288" fill="#c9d2e0" font-size="10.5">纯资产实物·极简·无</text><text x="750" y="304" fill="#9aa3b5" font-size="10.5">对接</text><rect x="932" y="266" width="204" height="52" rx="11" fill="#161b27" stroke="#ff6b81" stroke-opacity=".55"/><circle cx="956" cy="292" r="13" fill="#ff6b81" fill-opacity=".15" stroke="#ff6b81"/><text x="956" y="297" text-anchor="middle" fill="#ff6b81" font-size="12.5" font-weight="900">E</text><text x="978" y="288" fill="#c9d2e0" font-size="10.5">内部记账·仅审批对接</text><text x="978" y="304" fill="#9aa3b5" font-size="10.5"></text><rect x="20" y="340" width="1120" height="80" rx="14" fill="#3ee6d6" fill-opacity=".05" stroke="#3ee6d6" stroke-opacity=".4"/><text x="40" y="368" fill="#3ee6d6" font-size="13" font-weight="800">工具化封装（init-toolkit · 规划中）</text><text x="40" y="392" fill="#c9d2e0" font-size="11.5">方案选择器 → 节点序列 scaffold（模板锚点）→ 逐节点校验点 I-xx（BLOCK 门禁 R-OP / BR-AST 机器化）→ 初始化验收报告</text><text x="40" y="410" fill="#5b6478" font-size="11">体系嵌入：期初数据走只读通道核对 · 术语口径对知识库 · 验收结论入机器验收网 · 实施案例回流飞轮</text></g></svg>
+</section>
+<section id="s6" class="reveal">
+<h2 class="sec-title">06 · 版本与一致性治理</h2>
+<p class="sec-sub">数字只是版本快照，权威清单由工具注册表输出。公开站点与仓库设计文档按以下规则对齐：</p>
+<div class="tbl-wrap"><table>
+<tr><th style="width:220px">治理项</th><th>公开口径</th></tr>
+<tr><td>权威清单</td><td>以当版 contract.json 与 --print-checks 输出为准，文档不手抄闸门清单</td></tr>
+<tr><td>E2E 闸门版本</td><td>本站深度页为 V2.2 快照（21 项）；后续契约扩展至 30 项，见仓库设计文档</td></tr>
+<tr><td>检查点数量</td><td>各检查族数量为对应版本快照，不跨版本累加</td></tr>
+<tr><td>双知识库</td><td>维护工作流（S1~S7）与资产生命周期是两条独立闭环，不混用</td></tr>
+<tr><td>文档与实现</td><td>脚本与行数以实际工程为准；公开仓库不附带私有实现</td></tr>
+</table></div>
+</section>
+<section id="s7" class="reveal">
+<h2 class="sec-title">07 · FAQ</h2>
+<p class="sec-sub">点击展开——联动与拓展的常见疑问。</p><div class="faq-list" style="--cc:#5b9dff"><details class="fq"><summary><span class="fq-q">Q</span>联动会不会让单个工具变重？</summary><div class="fq-a">不会。联动全部通过契约（schema/编号/通道），工具保持独立可演进。</div></details><details class="fq"><summary><span class="fq-q">Q</span>新工具怎么接入体系？</summary><div class="fq-a">三条：消费共享只读通道、遵守全局编号规范、检查点接入对应族。</div></details><details class="fq"><summary><span class="fq-q">Q</span>知识腐烂怎么防？</summary><div class="fq-a">置信衰减 + 休眠 + 淘汰三段机制，与 E2E 知识层同源同构。</div></details><details class="fq"><summary><span class="fq-q">Q</span>路线图的时间承诺？</summary><div class="fq-a">刻意不给时间线——优先级由真实痛点驱动，防御力随踩坑单调增长。</div></details></div>
+</section>
+</main>
+</div>
+<button id="navToggle">☰</button><button id="topBtn">↑</button>
+<footer class="site">XX AI 工具体系 · 提示词是软约束，工具链是硬约束 · 机器验收 · 业务结论保留人工复核</footer>
+<script src="assets/site.js"></script>
+</body></html>

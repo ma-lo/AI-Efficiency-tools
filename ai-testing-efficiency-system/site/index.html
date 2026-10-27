@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XX AI 工具体系 · 产研全流程机器验收网</title>
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<div id="progress"></div>
+<div id="cursorGlow"></div>
+<nav class="topnav"><a class="brand" href="index.html">XX · AI 工具体系</a><a class="nl" href="#matrix">工具矩阵</a><a class="nl" href="#core">核心思路</a><a class="nl" href="linkage.html">联动与拓展</a></nav>
+<div class="layout">
+<nav class="sidenav"><div class="slogo">🧭 体系总览<div class="sub">产研全流程门户</div></div>
+<a href="#s0"><span class="ndot"></span>效能治理 · AI 赋能</a>
+<a href="#s1"><span class="ndot"></span>体系定位</a>
+<a href="#s2"><span class="ndot"></span>核心思路：四大支柱</a>
+<a href="#s3"><span class="ndot"></span>三条设计公理</a>
+<a href="#s4"><span class="ndot"></span>总体架构</a>
+<a href="#s5"><span class="ndot"></span>产研全流程视图</a>
+<a href="#s6"><span class="ndot"></span>工具矩阵</a>
+<a href="#s7"><span class="ndot"></span>机器验收网</a>
+<a href="#s8"><span class="ndot"></span>数据与知识底座</a>
+<a href="#s9"><span class="ndot"></span>需求全生命周期</a>
+<a href="#s10"><span class="ndot"></span>工具优化迭代总览</a>
+<a href="#s11"><span class="ndot"></span>演进方向</a>
+<a href="#s12"><span class="ndot"></span>FAQ</a>
+</nav>
+<main class="main">
+<section class="reveal vis" style="margin:22px 0 40px">
+<div class="badge" style="display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line2);border-radius:999px;padding:6px 14px;font-size:12px;color:var(--dim)"><span style="width:8px;height:8px;border-radius:50%;background:#3ee6d6;display:inline-block"></span>公开演示快照 · 11 工程工具 + 2 知识库 + 8 触发技能</div>
+<h1 style="font-size:38px;font-weight:900;margin:16px 0 10px">XX AI 工具体系</h1>
+<p class="lead" style="color:var(--dim);font-size:16px;max-width:900px;line-height:1.8">覆盖「需求 → 设计 → 规格 → 编码 → 测试 → 数据与知识」全流程的 AI 工具体系。核心主张：<b style="color:var(--txt)">提示词是软约束，工具链是硬约束——AI 产出语义，机器保证确定性，验收结论须可复核。</b>本页为体系总纲，各工具深度页面由此进入。本站为公开演示快照，E2E-ATW 深度页采用 V2.2 的 21 道闸门口径；后续机制扩展以仓库 README 与设计文档为准。</p>
+<div class="stats-row" style="margin-top:24px">
+<div class="stat-card"><div class="num" data-n="13">0</div><div class="lbl">工具与知识库</div></div>
+<div class="stat-card"><div class="num" data-n="110">0</div><div class="lbl">程序化检查点</div></div>
+<div class="stat-card"><div class="num" data-n="5">0</div><div class="lbl">检查点族 D/R/M/T/G</div></div>
+<div class="stat-card"><div class="num" data-n="6">0</div><div class="lbl">产研覆盖层</div></div>
+</div>
+<div class="rel-chips"><a href="#s0">效能治理与目标</a><a href="#core">四大支柱</a><a href="#s4">总体架构</a><a href="#s5">全流程视图</a><a href="#matrix">工具矩阵</a><a href="linkage.html">联动与拓展</a></div>
+</section>
+
+<section id="s0" class="reveal">
+<h2 class="sec-title">01 · 效能治理与 AI 赋能</h2>
+<p class="sec-sub">效能治理的核心命题：以 AI 赋能实现「提效」与「增质」的双轮驱动——AI 承接语义生产以压缩周期，机器验收兜住质量底线以杜绝返工，二者相互咬合、缺一不可。</p>
+<svg viewBox="0 0 1160 340" style="width:100%;max-width:1160px;display:block;margin:16px 0" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<marker id="ef-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#3ee6d6"/></marker>
+<linearGradient id="ef-curve" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3ee6d6"/><stop offset="1" stop-color="#a78bff"/></linearGradient>
+</defs>
+<g font-family="inherit">
+<rect x="20" y="20" width="560" height="300" rx="16" fill="#161b27" stroke="#2a3346"/>
+<text x="60" y="56" fill="#c9d2e0" font-size="14" font-weight="800">AI 赋能双引擎</text>
+<text x="60" y="76" fill="#5b6478" font-size="11">语义生产 × 机器验收，相互咬合、持续转动</text>
+<g transform="translate(210,180)">
+<g><animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="14s" repeatCount="indefinite"/>
+<circle r="62" fill="#3ee6d6" fill-opacity=".08" stroke="#3ee6d6" stroke-opacity=".7" stroke-width="2"/>
+<circle r="30" fill="none" stroke="#3ee6d6" stroke-opacity=".5" stroke-width="1.6"/>
+<g stroke="#3ee6d6" stroke-width="7" stroke-linecap="round">
+<line x1="0" y1="-78" x2="0" y2="-62"/><line x1="0" y1="62" x2="0" y2="78"/>
+<line x1="-78" y1="0" x2="-62" y2="0"/><line x1="62" y1="0" x2="78" y2="0"/>
+<line x1="55" y1="-55" x2="44" y2="-44"/><line x1="-55" y1="55" x2="-44" y2="44"/>
+<line x1="-55" y1="-55" x2="-44" y2="-44"/><line x1="55" y1="55" x2="44" y2="44"/></g>
+</g>
+<text y="4" text-anchor="middle" fill="#3ee6d6" font-size="13" font-weight="800">提效</text>
+<text y="96" text-anchor="middle" fill="#9aa3b5" font-size="11">AI 承接语义生产</text>
+</g>
+<g transform="translate(400,180)">
+<g><animateTransform attributeName="transform" type="rotate" from="360" to="0" dur="14s" repeatCount="indefinite"/>
+<circle r="62" fill="#a78bff" fill-opacity=".08" stroke="#a78bff" stroke-opacity=".7" stroke-width="2"/>
+<circle r="30" fill="none" stroke="#a78bff" stroke-opacity=".5" stroke-width="1.6"/>
+<g stroke="#a78bff" stroke-width="7" stroke-linecap="round">
+<line x1="0" y1="-78" x2="0" y2="-62"/><line x1="0" y1="62" x2="0" y2="78"/>
+<line x1="-78" y1="0" x2="-62" y2="0"/><line x1="62" y1="0" x2="78" y2="0"/>
+<line x1="55" y1="-55" x2="44" y2="-44"/><line x1="-55" y1="55" x2="-44" y2="44"/>
+<line x1="-55" y1="-55" x2="-44" y2="-44"/><line x1="55" y1="55" x2="44" y2="44"/></g>
+</g>
+<text y="4" text-anchor="middle" fill="#a78bff" font-size="13" font-weight="800">增质</text>
+<text y="96" text-anchor="middle" fill="#9aa3b5" font-size="11">机器验收兜底</text>
+</g>
+<circle cx="305" cy="180" r="5" fill="#3ee6d6"><animate attributeName="r" values="4;8;4" dur="2s" repeatCount="indefinite"/><animate attributeName="fill-opacity" values="1;.3;1" dur="2s" repeatCount="indefinite"/></circle>
+<rect x="600" y="20" width="540" height="300" rx="16" fill="#161b27" stroke="#2a3346"/>
+<text x="640" y="56" fill="#c9d2e0" font-size="14" font-weight="800">交付效能曲线</text>
+<text x="640" y="76" fill="#5b6478" font-size="11">体系每运转一轮，效能基线抬升一格</text>
+<line x1="650" y1="270" x2="1110" y2="270" stroke="#2a3346" stroke-width="1.4"/>
+<line x1="650" y1="270" x2="650" y2="100" stroke="#2a3346" stroke-width="1.4"/>
+<text x="640" y="96" fill="#5b6478" font-size="10.5">效能</text>
+<text x="1080" y="288" fill="#5b6478" font-size="10.5">轮次</text>
+<path d="M650 250 C 760 240, 820 200, 890 170 S 1040 110, 1100 96" fill="none" stroke="url(#ef-curve)" stroke-width="3" stroke-linecap="round" stroke-dasharray="6 5">
+<animate attributeName="stroke-dashoffset" from="44" to="0" dur="1.6s" repeatCount="indefinite"/></path>
+<circle r="6" fill="#3ee6d6"><animateMotion dur="4s" repeatCount="indefinite" path="M650 250 C 760 240, 820 200, 890 170 S 1040 110, 1100 96"/></circle>
+<circle cx="890" cy="170" r="4.5" fill="#5b9dff"><animate attributeName="r" values="3.5;7;3.5" dur="2.4s" repeatCount="indefinite"/></circle>
+<circle cx="1100" cy="96" r="4.5" fill="#a78bff"><animate attributeName="r" values="3.5;7;3.5" dur="2.4s" begin="1.2s" repeatCount="indefinite"/></circle>
+<text x="700" y="238" fill="#9aa3b5" font-size="10.5">人工为主</text>
+<text x="846" y="152" fill="#9aa3b5" font-size="10.5">工具链辅助</text>
+<text x="1040" y="84" fill="#9aa3b5" font-size="10.5">体系驱动</text>
+</g></svg>
+<div class="stats-row" style="margin-top:18px">
+<div class="stat-card"><div class="num" data-n="13">0</div><div class="lbl">工程工具与知识库协同运转</div></div>
+<div class="stat-card"><div class="num" data-n="110">0</div><div class="lbl">检查点替代人工逐项核稿</div></div>
+<div class="stat-card"><div class="num" data-n="21">0</div><div class="lbl">自动化闸门拦截假绿结论</div></div>
+<div class="stat-card"><div class="num" data-n="64">0</div><div class="lbl">财务核对模板沉淀复用</div></div>
+</div>
+<div class="pillars" style="margin-top:16px">
+<div class="pillar" style="--pc:rgba(62,230,214,.13);--pb:#3ee6d6"><span class="tag">提效 · 已落地</span><h3>AI 承接语义生产</h3><p>文档撰写、规格生成、用例设计、代码实现等语义密集型工作由 AI 在工具链约束下完成，人的角色从「逐字生产者」转为「验收决策者」，重复性劳动被系统性压缩。</p></div>
+<div class="pillar" style="--pc:rgba(167,139,255,.13);--pb:#a78bff"><span class="tag">增质 · 已落地</span><h3>机器验收兜住底线</h3><p>110+ 程序化检查点横切全流程，验收结论由证据链与链式哈希支撑、可复核、可追踪；假绿、编造、跳步等 AI 典型失效模式被逐项机器化拦截，质量不再依赖个人自觉。</p></div>
+<div class="pillar" style="--pc:rgba(91,157,255,.13);--pb:#5b9dff"><span class="tag">目标 · 近期</span><h3>需求承接自动化</h3><p>打通 PingCode 与飞书：工作项自动受理、AI 分析澄清并生成澄清问题清单、确认后自动产出概要设计，补齐需求层能力空白，入口从「人工搬运」变为「平台直通」。</p></div>
+<div class="pillar" style="--pc:rgba(255,180,84,.13);--pb:#ffb454"><span class="tag">目标 · 中远期</span><h3>从测试走向全团队</h3><p>评审模型由测试侧铺展至产品、研发全团队；BI 视图自动化搭建、竞品与财务知识扩展、AI Coding 持续强化，最终形成「需求进、资产出」的产研一张网。</p></div>
+</div>
+</section>
+
+<section id="s1" class="reveal">
+<h2 class="sec-title">02 · 体系定位</h2>
+<p class="sec-sub">这不是一组脚本集合，而是一张覆盖产研全流程的机器验收网络：每一层的产出必须通过该层的程序化检查点，才允许成为下一层的输入。</p>
+<svg viewBox="0 0 1160 380" style="width:100%;max-width:1160px;display:block;margin:16px 0" xmlns="http://www.w3.org/2000/svg">
+<defs><radialGradient id="st-hub" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#3ee6d6" stop-opacity=".25"/><stop offset="1" stop-color="#3ee6d6" stop-opacity="0"/></radialGradient></defs>
+<g font-family="inherit">
+<circle cx="250" cy="190" r="130" fill="url(#st-hub)"/>
+<circle cx="250" cy="190" r="88" fill="none" stroke="#3ee6d6" stroke-opacity=".35" stroke-width="1.4" stroke-dasharray="6 8"><animateTransform attributeName="transform" type="rotate" from="0 250 190" to="360 250 190" dur="26s" repeatCount="indefinite"/></circle>
+<circle cx="250" cy="190" r="66" fill="#0d1320" stroke="#3ee6d6" stroke-opacity=".7" stroke-width="2">
+<animate attributeName="r" values="66;70;66" dur="3s" repeatCount="indefinite"/></circle>
+<text x="250" y="182" text-anchor="middle" fill="#3ee6d6" font-size="15" font-weight="900">机器验收网络</text>
+<text x="250" y="204" text-anchor="middle" fill="#9aa3b5" font-size="11">每层准入 · 不留缝隙</text>
+<line x1="340" y1="120" x2="498" y2="76" stroke="#5b6478" stroke-width="1.4" stroke-dasharray="6 6" class="flowline"/>
+<line x1="340" y1="260" x2="498" y2="300" stroke="#5b6478" stroke-width="1.4" stroke-dasharray="6 6" class="flowline"/>
+<line x1="336" y1="160" x2="498" y2="186" stroke="#5b6478" stroke-width="1.4" stroke-dasharray="6 6" class="flowline"/>
+<rect x="500" y="30" width="300" height="130" rx="14" fill="#3ee6d6" fill-opacity=".06" stroke="#3ee6d6" stroke-opacity=".5"/>
+<text x="520" y="66" fill="#3ee6d6" font-size="26" font-weight="900">11</text>
+<text x="556" y="66" fill="#e8ecf4" font-size="13.5" font-weight="800">个工程工具</text>
+<text x="520" y="92" fill="#9aa3b5" font-size="11.5">按六层产研流水线布点</text>
+<text x="520" y="112" fill="#5b6478" font-size="11">设计一产一审 · 规格一写一验</text>
+<text x="520" y="130" fill="#5b6478" font-size="11">编码一码一测 · 测试双轨 · 数据横切</text>
+<rect x="840" y="30" width="300" height="130" rx="14" fill="#a78bff" fill-opacity=".06" stroke="#a78bff" stroke-opacity=".5"/>
+<text x="860" y="66" fill="#a78bff" font-size="26" font-weight="900">2</text>
+<text x="890" y="66" fill="#e8ecf4" font-size="13.5" font-weight="800">座知识库</text>
+<text x="860" y="92" fill="#9aa3b5" font-size="11.5">业务实现 PRD 库（多端多域）· BI 库</text>
+<text x="860" y="112" fill="#5b6478" font-size="11">AI 写业务内容前的事实核验基准</text>
+<text x="860" y="130" fill="#5b6478" font-size="11">七步法生命周期 · 置信衰减防腐</text>
+<rect x="500" y="220" width="300" height="130" rx="14" fill="#5b9dff" fill-opacity=".06" stroke="#5b9dff" stroke-opacity=".5"/>
+<text x="520" y="256" fill="#5b9dff" font-size="26" font-weight="900">8</text>
+<text x="550" y="256" fill="#e8ecf4" font-size="13.5" font-weight="800">个触发技能（SKILL.md）</text>
+<text x="520" y="282" fill="#9aa3b5" font-size="11.5">自然语言意图 → 工具链标准入口</text>
+<text x="520" y="302" fill="#5b6478" font-size="11">技能为薄入口，规则全部沉在工具</text>
+<rect x="840" y="220" width="300" height="130" rx="14" fill="#ffb454" fill-opacity=".06" stroke="#ffb454" stroke-opacity=".5"/>
+<text x="860" y="256" fill="#ffb454" font-size="26" font-weight="900">1</text>
+<text x="888" y="256" fill="#e8ecf4" font-size="13.5" font-weight="800">条主线</text>
+<text x="860" y="282" fill="#9aa3b5" font-size="11.5">需求单号进，可审计交付资产出</text>
+<text x="860" y="302" fill="#5b6478" font-size="11">文档 / 代码 / 用例 / 证据链</text>
+</g></svg>
+<div class="biz-note"><span class="bi">💼</span><div><b>体系解决的根本问题：</b>AI 研发最大的风险是「看起来对」。本体系把每个环节「什么算对」定义为机器可执行的检查项——<b>全流程不留依赖自觉的缝隙</b>。</div></div>
+</section>
+
+<span id="core"></span>
+<section id="s2" class="reveal">
+<h2 class="sec-title">03 · 核心思路：四大支柱</h2>
+<p class="sec-sub">全体系的设计思想可归纳为四个互相咬合的支柱：<b style="color:var(--txt)">工具链路化、受控 RAG、Agent 编排、自积累成长</b>。四者构成一个持续自增强的飞轮。</p>
+<svg viewBox="0 0 1160 430" style="width:100%;max-width:1160px;display:block;margin:18px 0" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<marker id="fw-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#3ee6d6"/></marker>
+<radialGradient id="fw-hub" cx=".5" cy=".5" r=".6"><stop offset="0" stop-color="#3ee6d6" stop-opacity=".28"/><stop offset="1" stop-color="#3ee6d6" stop-opacity=".04"/></radialGradient>
+</defs>
+<g font-family="inherit">
+<circle cx="580" cy="212" r="118" fill="none" stroke="#3ee6d6" stroke-opacity=".35" stroke-width="1.6" stroke-dasharray="7 5"/>
+<path d="M 580 94 A 118 118 0 0 1 698 212" fill="none" stroke="#3ee6d6" stroke-width="2" marker-end="url(#fw-ar)"/>
+<path d="M 580 330 A 118 118 0 0 1 462 212" fill="none" stroke="#3ee6d6" stroke-width="2" marker-end="url(#fw-ar)"/>
+<circle cx="580" cy="212" r="86" fill="url(#fw-hub)" stroke="#3ee6d6" stroke-opacity=".6" stroke-width="1.5"/>
+<text x="580" y="200" text-anchor="middle" fill="#e8ecf4" font-size="16" font-weight="800">产研资产飞轮</text>
+<text x="580" y="222" text-anchor="middle" fill="#9aa3b5" font-size="11.5">需求 → 资产 → 证据 → 知识</text>
+<text x="580" y="240" text-anchor="middle" fill="#9aa3b5" font-size="11.5">每转一圈，体系更强一分</text>
+<rect x="60" y="60" width="290" height="86" rx="14" fill="#3ee6d6" fill-opacity=".09" stroke="#3ee6d6" stroke-opacity=".6"/>
+<text x="205" y="88" text-anchor="middle" fill="#3ee6d6" font-size="14.5" font-weight="800">① 工具链路化</text>
+<text x="205" y="110" text-anchor="middle" fill="#9aa3b5" font-size="11.5">确定性全部机器化：检查点/哈希/快照</text>
+<text x="205" y="128" text-anchor="middle" fill="#9aa3b5" font-size="11.5">生成与验收分离 · 契约衔接各层</text>
+<line x1="352" y1="118" x2="476" y2="172" stroke="#3ee6d6" stroke-width="1.4" stroke-opacity=".7" marker-end="url(#fw-ar)"/>
+<rect x="810" y="60" width="290" height="86" rx="14" fill="#5b9dff" fill-opacity=".09" stroke="#5b9dff" stroke-opacity=".6"/>
+<text x="955" y="88" text-anchor="middle" fill="#5b9dff" font-size="14.5" font-weight="800">② 受控 RAG</text>
+<text x="955" y="110" text-anchor="middle" fill="#9aa3b5" font-size="11.5">生成前装载备料事实，引用词级命中</text>
+<text x="955" y="128" text-anchor="middle" fill="#9aa3b5" font-size="11.5">AI 在事实围栏内创作，编造无法过闸</text>
+<line x1="808" y1="118" x2="684" y2="172" stroke="#5b9dff" stroke-width="1.4" stroke-opacity=".7" marker-end="url(#fw-ar)"/>
+<rect x="60" y="280" width="290" height="86" rx="14" fill="#ffb454" fill-opacity=".09" stroke="#ffb454" stroke-opacity=".6"/>
+<text x="205" y="308" text-anchor="middle" fill="#ffb454" font-size="14.5" font-weight="800">③ Agent 编排</text>
+<text x="205" y="330" text-anchor="middle" fill="#9aa3b5" font-size="11.5">强制序列 + 状态机 + 修复上限停机</text>
+<text x="205" y="348" text-anchor="middle" fill="#9aa3b5" font-size="11.5">AI 是执行者不是裁判，失败诚实退出</text>
+<line x1="352" y1="308" x2="476" y2="252" stroke="#ffb454" stroke-width="1.4" stroke-opacity=".7" marker-end="url(#fw-ar)"/>
+<rect x="810" y="280" width="290" height="86" rx="14" fill="#a78bff" fill-opacity=".09" stroke="#a78bff" stroke-opacity=".6"/>
+<text x="955" y="308" text-anchor="middle" fill="#a78bff" font-size="14.5" font-weight="800">④ 自积累成长</text>
+<text x="955" y="330" text-anchor="middle" fill="#9aa3b5" font-size="11.5">知识七步法 + 置信衰减 + 反馈飞轮</text>
+<text x="955" y="348" text-anchor="middle" fill="#9aa3b5" font-size="11.5">踩坑固化为防线，体系越用越强</text>
+<line x1="808" y1="308" x2="684" y2="252" stroke="#a78bff" stroke-width="1.4" stroke-opacity=".7" marker-end="url(#fw-ar)"/>
+</g></svg>
+<div class="pillars">
+<div class="pillar" style="--pc:rgba(62,230,214,.13);--pb:#3ee6d6"><span class="tag">支柱一</span><h3>工具链路化</h3><p>AI 的产出永远由机器验收：结构由模板锚点固化、事实由源码与知识库核验、交付由检查点族判定、产物由链式哈希防篡改。提示词只承载意图，规则本身沉淀在工具链中。</p></div>
+<div class="pillar" style="--pc:rgba(91,157,255,.13);--pb:#5b9dff"><span class="tag">支柱二</span><h3>受控 RAG</h3><p>AI 生成前必须装载备料事实（需求、规格、库表口径、业务知识库），声明的每条引用须经词级命中核验。创造力被完整保留，但只允许在事实围栏内发挥。</p></div>
+<div class="pillar" style="--pc:rgba(255,180,84,.13);--pb:#ffb454"><span class="tag">支柱三</span><h3>Agent 编排</h3><p>每个工具将流程固化为强制序列与状态机：先审计后撰写、先执行后落笔、FAIL 定向修复、超限停机汇报。AI 在序列中是执行者而非裁判。</p></div>
+<div class="pillar" style="--pc:rgba(167,139,255,.13);--pb:#a78bff"><span class="tag">支柱四</span><h3>自积累成长</h3><p>知识七步法管理业务口径的全生命周期，置信衰减防止知识腐烂；失败案例经反馈飞轮回流为防线。每个缺陷被修复的同时，体系永久增加一条防线。</p></div>
+</div>
+<div class="biz-note"><span class="bi">💼</span><div><b>四支柱互补：</b>纯 AI 会编造与漂移，纯工具会僵硬不进化——<b>机器保确定性，AI 供语义力，知识供事实基，飞轮供成长性</b>。</div></div>
+</section>
+
+<section id="s3" class="reveal">
+<h2 class="sec-title">04 · 三条设计公理</h2>
+<p class="sec-sub">全体系所有工具共享的基因。每个工具页设有「设计原则落地」章节，说明公理在该工具的具体形态。</p>
+<div class="pillars">
+<div class="pillar" style="--pc:rgba(62,230,214,.13);--pb:#3ee6d6"><span class="tag">公理一</span><h3>提示词是软约束，工具链是硬约束</h3><p>编造、跳步、漂移、口径分裂——每类失效模式逐项机器化：锚点固化结构、审计核验事实、检查点验收口径、哈希防篡改。</p></div>
+<div class="pillar" style="--pc:rgba(91,157,255,.13);--pb:#5b9dff"><span class="tag">公理二</span><h3>AI 产出语义，机器保证确定性</h3><p>业务描述由 AI 完成；编号、引用、编译、执行证据由机器判定。两者以配置划界，互不越权。</p></div>
+<div class="pillar" style="--pc:rgba(167,139,255,.13);--pb:#a78bff"><span class="tag">公理三</span><h3>验收结论须可复核</h3><p>硬闸项全 PASS 方可交付，FAIL 精确定位，修复有上限，超限停机；软闸、豁免与人工复核必须如实披露。结论可复核、可追踪。</p></div>
+</div>
+</section>
+
+<section id="s4" class="reveal">
+<h2 class="sec-title">05 · 总体架构</h2>
+<p class="sec-sub">五层纵向架构 + 一张横切验收网络。每层职责单一、层间以契约衔接；验收能力横切所有层——这是「每个工具共用同一套设计思想」的结构化表达。</p>
+<svg viewBox="0 0 1160 380" style="width:100%;max-width:1160px;display:block;margin:14px 0" xmlns="http://www.w3.org/2000/svg">
+    <defs><marker id="ov-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#5b6478"/></marker></defs>
+    <g font-family="inherit">
+    <rect x="20" y="16" width="860" height="56" rx="12" fill="#3ee6d6" fill-opacity=".1" stroke="#3ee6d6" stroke-opacity=".55"/>
+    <rect x="20" y="16" width="150" height="56" rx="12" fill="#3ee6d6" fill-opacity=".18"/>
+    <text x="95" y="50" text-anchor="middle" fill="#3ee6d6" font-size="14" font-weight="800">技能接入层</text>
+    <text x="190" y="42" fill="#c9d2e0" font-size="12.5">8 个 SKILL.md 触发技能 —— AI 的统一入口，自然语言意图 → 工具链调用</text>
+    <text x="190" y="60" fill="#5b6478" font-size="11">xx-prd-detail · xx-prd-review · xx-spec-writing · xx-spec-coding · xx-testcase-gen · xx-e2e-atw · xx-db-query · kb-maintain</text>
+    <line x1="450" y1="76" x2="450" y2="92" stroke="#5b6478" stroke-width="1.4" marker-end="url(#ov-ar)"/>
+    <rect x="20" y="96" width="860" height="76" rx="12" fill="#5b9dff" fill-opacity=".08" stroke="#5b9dff" stroke-opacity=".5"/>
+    <rect x="20" y="96" width="150" height="76" rx="12" fill="#5b9dff" fill-opacity=".16"/>
+    <text x="95" y="140" text-anchor="middle" fill="#5b9dff" font-size="14" font-weight="800">工具执行层</text>
+    <text x="190" y="126" fill="#c9d2e0" font-size="12.5">11 个工程工具 × 产研六层流水线（需求 / 设计 / 规格 / 编码 / 测试 / 数据知识）</text>
+    <text x="190" y="146" fill="#5b6478" font-size="11">每层「生成与验收分离」：产出由脚本，判卷由独立检查点族，互不越权</text>
+    <text x="190" y="163" fill="#5b6478" font-size="11">层间准入：上层产物通过该层机器验收，才允许作为下层输入</text>
+    <line x1="450" y1="176" x2="450" y2="192" stroke="#5b6478" stroke-width="1.4" marker-end="url(#ov-ar)"/>
+    <rect x="20" y="196" width="860" height="56" rx="12" fill="#ffb454" fill-opacity=".08" stroke="#ffb454" stroke-opacity=".5"/>
+    <rect x="20" y="196" width="150" height="56" rx="12" fill="#ffb454" fill-opacity=".16"/>
+    <text x="95" y="230" text-anchor="middle" fill="#ffb454" font-size="14" font-weight="800">契约层</text>
+    <text x="190" y="222" fill="#c9d2e0" font-size="12.5">共享契约：scope_report schema · BUG 全局编号 · AC-TR / API-TR / F-xx 编号体系 · config 即事实源</text>
+    <text x="190" y="240" fill="#5b6478" font-size="11">工具间靠契约咬合而非代码耦合 —— 每个工具独立可演进</text>
+    <line x1="450" y1="256" x2="450" y2="272" stroke="#5b6478" stroke-width="1.4" marker-end="url(#ov-ar)"/>
+    <rect x="20" y="276" width="860" height="40" rx="12" fill="#ff6b81" fill-opacity=".07" stroke="#ff6b81" stroke-opacity=".45"/>
+    <rect x="20" y="276" width="150" height="40" rx="12" fill="#ff6b81" fill-opacity=".14"/>
+    <text x="95" y="301" text-anchor="middle" fill="#ff6b81" font-size="14" font-weight="800">数据通道层</text>
+    <text x="190" y="301" fill="#c9d2e0" font-size="12.5">共享只读数据库通道：连接级只读 · 表→库自动定位 · 全量审计留痕 —— 全体系「看同一本账」</text>
+    <line x1="450" y1="320" x2="450" y2="336" stroke="#5b6478" stroke-width="1.4" marker-end="url(#ov-ar)"/>
+    <rect x="20" y="340" width="860" height="32" rx="12" fill="#a78bff" fill-opacity=".08" stroke="#a78bff" stroke-opacity=".5"/>
+    <rect x="20" y="340" width="150" height="32" rx="12" fill="#a78bff" fill-opacity=".16"/>
+    <text x="95" y="361" text-anchor="middle" fill="#a78bff" font-size="14" font-weight="800">知识层</text>
+    <text x="190" y="361" fill="#c9d2e0" font-size="12.5">双知识库（多端多业务域 + BI）· 七步法生命周期 · 置信衰减防腐烂 —— AI 的「业务户口本」</text>
+    <rect x="900" y="16" width="240" height="356" rx="12" fill="#161b27" stroke="#3ee6d6" stroke-opacity=".5" stroke-dasharray="6 4"/>
+    <text x="1020" y="44" text-anchor="middle" fill="#3ee6d6" font-size="14" font-weight="800">机器验收网（横切）</text>
+    <text x="1020" y="72" text-anchor="middle" fill="#c9d2e0" font-size="12">D-xx 需求 · R-xx 评审</text>
+    <text x="1020" y="92" text-anchor="middle" fill="#c9d2e0" font-size="12">M-xx 规格 · T-xx 用例</text>
+    <text x="1020" y="112" text-anchor="middle" fill="#c9d2e0" font-size="12">G-xx 自动化 · 单测闸门</text>
+    <text x="1020" y="140" text-anchor="middle" fill="#5b6478" font-size="11">110+ 程序化检查点</text>
+    <text x="1020" y="168" text-anchor="middle" fill="#c9d2e0" font-size="12">链式哈希 + 验收签章</text>
+    <text x="1020" y="188" text-anchor="middle" fill="#c9d2e0" font-size="12">证据时效窗口</text>
+    <text x="1020" y="208" text-anchor="middle" fill="#c9d2e0" font-size="12">批次熔断</text>
+    <text x="1020" y="236" text-anchor="middle" fill="#5b6478" font-size="11">「验收结论须可复核」</text>
+    <text x="1020" y="254" text-anchor="middle" fill="#5b6478" font-size="11">的物理基础</text>
+    <line x1="900" y1="120" x2="884" y2="120" stroke="#3ee6d6" stroke-width="1.2" stroke-dasharray="4 3"/>
+    <line x1="900" y1="224" x2="884" y2="224" stroke="#3ee6d6" stroke-width="1.2" stroke-dasharray="4 3"/>
+    <line x1="900" y1="296" x2="884" y2="296" stroke="#3ee6d6" stroke-width="1.2" stroke-dasharray="4 3"/>
+    <line x1="900" y1="356" x2="884" y2="356" stroke="#3ee6d6" stroke-width="1.2" stroke-dasharray="4 3"/>
+    </g></svg>
+<table><thead><tr><th>层</th><th>职责</th><th>设计取舍</th></tr></thead><tbody>
+<tr><td><b>技能接入层</b></td><td>自然语言意图 → 工具链调用</td><td>技能为薄入口，不含规则——规则全部沉到工具与配置</td></tr>
+<tr><td><b>工具执行层</b></td><td>11 个工程工具承载六层流水线</td><td>每工具「生成与验收分离」，独立可演进</td></tr>
+<tr><td><b>契约层</b></td><td>schema / 编号 / 配置的共享口径</td><td>以契约咬合而非代码耦合，新工具接入只需对齐口径</td></tr>
+<tr><td><b>数据通道层</b></td><td>唯一只读通道 + 全量审计</td><td>安全约束物理化在通道内，规则只维护一份</td></tr>
+<tr><td><b>知识层</b></td><td>业务事实核验基准</td><td>知识有生命周期，置信衰减防止基准腐烂</td></tr>
+<tr><td><b>验收网（横切）</b></td><td>110+ 检查点覆盖所有层</td><td>验收独立于生成，结论须可复核、可追踪</td></tr>
+</tbody></table>
+</section>
+
+<section id="s5" class="reveal">
+<h2 class="sec-title">06 · 产研全流程视图</h2>
+<p class="sec-sub">六个阶段各自的承载工具、关键产物与准入验收门。质量在每一层准入，而非最后一道关。</p>
+<svg viewBox="0 0 1160 470" style="width:100%;max-width:1160px;display:block;margin:16px 0" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="fl-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#5b6478"/></marker></defs>
+<g font-family="inherit">
+<text x="20" y="24" fill="#5b6478" font-size="11.5" letter-spacing="2">阶段 STAGE</text>
+<text x="150" y="24" fill="#5b6478" font-size="11.5" letter-spacing="2">承载工具</text>
+<text x="520" y="24" fill="#5b6478" font-size="11.5" letter-spacing="2">关键产物</text>
+<text x="880" y="24" fill="#5b6478" font-size="11.5" letter-spacing="2">准入验收门</text>
+<rect x="20" y="34" width="1120" height="58" rx="10" fill="#161b27" stroke="#2a3346"/><rect x="20" y="34" width="112" height="58" rx="10" fill="#5b6478" fill-opacity=".13"/><text x="76" y="70" text-anchor="middle" fill="#5b6478" font-size="13.5" font-weight="800">需求层</text><text x="150" y="70" fill="#c9d2e0" font-size="12">规划承接中：需求处理 / 分析澄清 / 概要设计（演进方向）</text><text x="520" y="70" fill="#9aa3b5" font-size="12">—</text><text x="880" y="70" fill="#5b6478" font-size="12" font-weight="700">—</text><rect x="20" y="102" width="1120" height="58" rx="10" fill="#161b27" stroke="#2a3346"/><rect x="20" y="102" width="112" height="58" rx="10" fill="#a78bff" fill-opacity=".13"/><text x="76" y="138" text-anchor="middle" fill="#a78bff" font-size="13.5" font-weight="800">设计层</text><text x="150" y="138" fill="#c9d2e0" font-size="12">prd-toolkit · rv-toolkit</text><text x="520" y="138" fill="#9aa3b5" font-size="12">《交互规则》《数据处理与初始化》双文档 + 评审报告</text><text x="880" y="138" fill="#a78bff" font-size="12" font-weight="700">D-xx · 19 项 + R-xx · 27 项</text><rect x="20" y="170" width="1120" height="58" rx="10" fill="#161b27" stroke="#2a3346"/><rect x="20" y="170" width="112" height="58" rx="10" fill="#5b9dff" fill-opacity=".13"/><text x="76" y="206" text-anchor="middle" fill="#5b9dff" font-size="13.5" font-weight="800">规格层</text><text x="150" y="206" fill="#c9d2e0" font-size="12">spec-toolkit · xx-spec-writing</text><text x="520" y="206" fill="#9aa3b5" font-size="12">双端规格书 + 编码指令集 + 验收标准</text><text x="880" y="206" fill="#5b9dff" font-size="12" font-weight="700">M-xx · 22 项 + 契约对拍</text><rect x="20" y="238" width="1120" height="58" rx="10" fill="#161b27" stroke="#2a3346"/><rect x="20" y="238" width="112" height="58" rx="10" fill="#3ee6d6" fill-opacity=".13"/><text x="76" y="274" text-anchor="middle" fill="#3ee6d6" font-size="13.5" font-weight="800">编码层</text><text x="150" y="274" fill="#c9d2e0" font-size="12">xx-spec-coding · unit-test-selfcheck</text><text x="520" y="274" fill="#9aa3b5" font-size="12">工程代码 + 编码报告 + 5 份自检归档</text><text x="880" y="274" fill="#3ee6d6" font-size="12" font-weight="700">三闸门 + 10 项</text><rect x="20" y="306" width="1120" height="58" rx="10" fill="#161b27" stroke="#2a3346"/><rect x="20" y="306" width="112" height="58" rx="10" fill="#ffb454" fill-opacity=".13"/><text x="76" y="342" text-anchor="middle" fill="#ffb454" font-size="13.5" font-weight="800">测试层</text><text x="150" y="342" fill="#c9d2e0" font-size="12">tc-toolkit · E2E-ATW</text><text x="520" y="342" fill="#9aa3b5" font-size="12">手工用例 + 自动化资产 + 证据链报告</text><text x="880" y="342" fill="#ffb454" font-size="12" font-weight="700">T-xx · 21 项 + G-xx · 21 道</text><rect x="20" y="374" width="1120" height="58" rx="10" fill="#161b27" stroke="#2a3346"/><rect x="20" y="374" width="112" height="58" rx="10" fill="#ff6b81" fill-opacity=".13"/><text x="76" y="410" text-anchor="middle" fill="#ff6b81" font-size="13.5" font-weight="800">数据/知识层</text><text x="150" y="410" fill="#c9d2e0" font-size="12">db-query-assistant · defect-hunter · depr-check-toolkit · xx-kb</text><text x="520" y="410" fill="#9aa3b5" font-size="12">只读通道 / 根因证据链 / 核对结论 / 业务口径</text><text x="880" y="410" fill="#ff6b81" font-size="12" font-weight="700">横切支撑各层</text></g></svg>
+</section>
+
+<span id="matrix"></span>
+<section id="s6" class="reveal">
+<h2 class="sec-title">07 · 工具矩阵</h2>
+<p class="sec-sub">13 个工具与知识库按六层流水线布点：设计一产一审、规格一写一验、编码一码一测、测试双轨、数据与知识横切支撑。点击卡片进入对应深度页。</p>
+<svg viewBox="0 0 1160 400" style="width:100%;max-width:1160px;display:block;margin:16px 0" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="tf-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#5b6478"/></marker></defs>
+<g font-family="inherit">
+<line x1="70" y1="150" x2="1100" y2="150" stroke="#2a3346" stroke-width="2.5" stroke-dasharray="8 6">
+<animate attributeName="stroke-dashoffset" from="56" to="0" dur="1.8s" repeatCount="indefinite"/></line>
+<circle r="6" fill="#3ee6d6"><animateMotion dur="6s" repeatCount="indefinite" path="M70 150 L1100 150"/></circle>
+<circle r="4.5" fill="#5b9dff"><animateMotion dur="6s" begin="2s" repeatCount="indefinite" path="M70 150 L1100 150"/></circle>
+<circle r="4.5" fill="#ffb454"><animateMotion dur="6s" begin="4s" repeatCount="indefinite" path="M70 150 L1100 150"/></circle>
+<g><line x1="90" y1="150" x2="90" y2="122" stroke="#2a3346" stroke-width="1.6"/><circle cx="90" cy="150" r="7" fill="#0b0f16" stroke="#5b6478" stroke-width="2.2"><animate attributeName="r" values="7;9;7" dur="2.6s" begin="0.0s" repeatCount="indefinite"/></circle><text x="90" y="108" text-anchor="middle" fill="#5b6478" font-size="13" font-weight="800">需求层</text><text x="90" y="92" text-anchor="middle" fill="#5b6478" font-size="10.5">规划承接中</text></g><g><line x1="290" y1="150" x2="290" y2="178" stroke="#2a3346" stroke-width="1.6"/><circle cx="290" cy="150" r="7" fill="#0b0f16" stroke="#a78bff" stroke-width="2.2"><animate attributeName="r" values="7;9;7" dur="2.6s" begin="0.4s" repeatCount="indefinite"/></circle><text x="290" y="205" text-anchor="middle" fill="#a78bff" font-size="13" font-weight="800">设计层</text><text x="290" y="222" text-anchor="middle" fill="#5b6478" font-size="10.5">D-xx · R-xx</text></g><g><line x1="490" y1="150" x2="490" y2="122" stroke="#2a3346" stroke-width="1.6"/><circle cx="490" cy="150" r="7" fill="#0b0f16" stroke="#5b9dff" stroke-width="2.2"><animate attributeName="r" values="7;9;7" dur="2.6s" begin="0.8s" repeatCount="indefinite"/></circle><text x="490" y="108" text-anchor="middle" fill="#5b9dff" font-size="13" font-weight="800">规格层</text><text x="490" y="92" text-anchor="middle" fill="#5b6478" font-size="10.5">M-xx · 契约对拍</text></g><g><line x1="680" y1="150" x2="680" y2="178" stroke="#2a3346" stroke-width="1.6"/><circle cx="680" cy="150" r="7" fill="#0b0f16" stroke="#3ee6d6" stroke-width="2.2"><animate attributeName="r" values="7;9;7" dur="2.6s" begin="1.2s" repeatCount="indefinite"/></circle><text x="680" y="205" text-anchor="middle" fill="#3ee6d6" font-size="13" font-weight="800">编码层</text><text x="680" y="222" text-anchor="middle" fill="#5b6478" font-size="10.5">三闸门 · 10 项</text></g><g><line x1="870" y1="150" x2="870" y2="122" stroke="#2a3346" stroke-width="1.6"/><circle cx="870" cy="150" r="7" fill="#0b0f16" stroke="#ffb454" stroke-width="2.2"><animate attributeName="r" values="7;9;7" dur="2.6s" begin="1.6s" repeatCount="indefinite"/></circle><text x="870" y="108" text-anchor="middle" fill="#ffb454" font-size="13" font-weight="800">测试层</text><text x="870" y="92" text-anchor="middle" fill="#5b6478" font-size="10.5">T-xx · G-xx</text></g><g><line x1="1070" y1="150" x2="1070" y2="178" stroke="#2a3346" stroke-width="1.6"/><circle cx="1070" cy="150" r="7" fill="#0b0f16" stroke="#ff6b81" stroke-width="2.2"><animate attributeName="r" values="7;9;7" dur="2.6s" begin="2.0s" repeatCount="indefinite"/></circle><text x="1070" y="205" text-anchor="middle" fill="#ff6b81" font-size="13" font-weight="800">数据/知识层</text><text x="1070" y="222" text-anchor="middle" fill="#5b6478" font-size="10.5">横切支撑</text></g><g><rect x="195" y="258" width="190" height="34" rx="9" fill="#a78bff" fill-opacity=".09" stroke="#a78bff" stroke-opacity=".55"/><text x="290" y="280" text-anchor="middle" fill="#c9d2e0" font-size="11.5">prd-toolkit 详细设计生产</text></g><g><rect x="205" y="306" width="170" height="34" rx="9" fill="#a78bff" fill-opacity=".09" stroke="#a78bff" stroke-opacity=".55"/><text x="290" y="328" text-anchor="middle" fill="#c9d2e0" font-size="11.5">rv-toolkit 设计评审</text></g><g><rect x="395" y="258" width="190" height="34" rx="9" fill="#5b9dff" fill-opacity=".09" stroke="#5b9dff" stroke-opacity=".55"/><text x="490" y="280" text-anchor="middle" fill="#c9d2e0" font-size="11.5">spec-toolkit 规格验证基座</text></g><g><rect x="397" y="306" width="185" height="34" rx="9" fill="#5b9dff" fill-opacity=".09" stroke="#5b9dff" stroke-opacity=".55"/><text x="490" y="328" text-anchor="middle" fill="#c9d2e0" font-size="11.5">xx-spec-writing 规格编写</text></g><g><rect x="577" y="258" width="205" height="34" rx="9" fill="#3ee6d6" fill-opacity=".09" stroke="#3ee6d6" stroke-opacity=".55"/><text x="680" y="280" text-anchor="middle" fill="#c9d2e0" font-size="11.5">xx-spec-coding 规格驱动编码</text></g><g><rect x="582" y="306" width="195" height="34" rx="9" fill="#3ee6d6" fill-opacity=".09" stroke="#3ee6d6" stroke-opacity=".55"/><text x="680" y="328" text-anchor="middle" fill="#c9d2e0" font-size="11.5">unit-test-selfcheck 单测自检</text></g><g><rect x="775" y="258" width="190" height="34" rx="9" fill="#ffb454" fill-opacity=".09" stroke="#ffb454" stroke-opacity=".55"/><text x="870" y="280" text-anchor="middle" fill="#c9d2e0" font-size="11.5">tc-toolkit 用例与数据生产</text></g><g><rect x="777" y="306" width="185" height="34" rx="9" fill="#ffb454" fill-opacity=".09" stroke="#ffb454" stroke-opacity=".55"/><text x="870" y="328" text-anchor="middle" fill="#c9d2e0" font-size="11.5">E2E-ATW UI 自动化验收</text></g><g><rect x="954" y="258" width="196" height="34" rx="9" fill="#ff6b81" fill-opacity=".09" stroke="#ff6b81" stroke-opacity=".55"/><text x="1052" y="280" text-anchor="middle" fill="#c9d2e0" font-size="11.5">db-query / defect-hunter / depr-check</text></g><g><rect x="972" y="306" width="160" height="34" rx="9" fill="#ff6b81" fill-opacity=".09" stroke="#ff6b81" stroke-opacity=".55"/><text x="1052" y="328" text-anchor="middle" fill="#c9d2e0" font-size="11.5">xx-kb 双知识库</text></g><text x="70" y="372" fill="#5b6478" font-size="11.5">资产沿主线逐层流转：每层产物须通过该层验收门，方允许成为下一层输入 —— 质量在每一层准入</text></g></svg>
+<div class="tgrid">
+<a class="tcard" href="tools/prd-toolkit.html"><div class="tn">📋 prd-toolkit</div><div class="td">设计层 · 详细设计生产工具链 · D-xx 19 项机器验收</div></a>
+<a class="tcard" href="tools/rv-toolkit.html"><div class="tn">🔍 rv-toolkit</div><div class="td">设计层 · 详细设计评审 · R-xx 系列检查点</div></a>
+<a class="tcard" href="tools/spec-toolkit.html"><div class="tn">📜 spec-toolkit</div><div class="td">规格层 · 验证基座 · M-xx 22 项 + 契约对拍</div></a>
+<a class="tcard" href="tools/xx-spec-writing.html"><div class="tn">✍️ xx-spec-writing</div><div class="td">规格层 · 编写技能 · 存疑即审计</div></a>
+<a class="tcard" href="tools/xx-spec-coding.html"><div class="tn">⚡ xx-spec-coding</div><div class="td">编码层 · 范围表达式 + 三闸门</div></a>
+<a class="tcard" href="tools/unit-test-selfcheck.html"><div class="tn">🧪 unit-test-selfcheck</div><div class="td">编码层 · 单测自检 · 10 项质量闸门</div></a>
+<a class="tcard" href="tools/tc-toolkit.html"><div class="tn">🧩 tc-toolkit</div><div class="td">测试层 · 用例与数据生产 · T-xx 21 项</div></a>
+<a class="tcard" href="tools/e2e-atw.html"><div class="tn">🤖 E2E-ATW</div><div class="td">测试层 · UI 自动化 · G-xx 21 道闸门 · 28 章深度页</div></a>
+<a class="tcard" href="tools/db-query-assistant.html"><div class="tn">🗄️ db-query-assistant</div><div class="td">数据层 · 全体系共享只读通道</div></a>
+<a class="tcard" href="tools/defect-hunter.html"><div class="tn">🏹 defect-hunter</div><div class="td">数据层 · 四层漏斗定位 · 67 症状路由</div></a>
+<a class="tcard" href="tools/depr-check-toolkit.html"><div class="tn">🧮 depr-check-toolkit</div><div class="td">数据层 · 64 折旧核对模板 · 7 万+ 行校准</div></a>
+<a class="tcard" href="tools/xx-kb.html"><div class="tn">📚 XX 知识库</div><div class="td">知识层 · 双库 · kb-maintain 七步法</div></a>
+</div>
+</section>
+
+<section id="s7" class="reveal">
+<h2 class="sec-title">08 · 机器验收网</h2>
+<p class="sec-sub">五套检查点族构成全流程的机器验收网络。任何一层「看起来对」，都必须先通过对应族的全项判定。</p>
+<svg viewBox="0 0 1160 240" style="width:100%;max-width:1160px;display:block;margin:14px 0" xmlns="http://www.w3.org/2000/svg">
+<g font-family="inherit">
+<text x="20" y="46" fill="#c9d2e0" font-size="12.5" font-weight="700">D-xx 详细设计验收</text><rect x="150" y="30" width="494" height="22" rx="6" fill="#3ee6d6" fill-opacity=".22" stroke="#3ee6d6" stroke-opacity=".55"/><rect x="150" y="30" width="494" height="22" rx="6" fill="url(#gt-d)"/><text x="654" y="46" fill="#9aa3b5" font-size="11.5">19 项</text><text x="20" y="86" fill="#c9d2e0" font-size="12.5" font-weight="700">R-xx 设计评审检查</text><rect x="150" y="70" width="702" height="22" rx="6" fill="#a78bff" fill-opacity=".22" stroke="#a78bff" stroke-opacity=".55"/><rect x="150" y="70" width="702" height="22" rx="6" fill="url(#gt-r)"/><text x="862" y="86" fill="#9aa3b5" font-size="11.5">27 项</text><text x="20" y="126" fill="#c9d2e0" font-size="12.5" font-weight="700">M-xx 规格验收 + 联动</text><rect x="150" y="110" width="728" height="22" rx="6" fill="#5b9dff" fill-opacity=".22" stroke="#5b9dff" stroke-opacity=".55"/><rect x="150" y="110" width="728" height="22" rx="6" fill="url(#gt-m)"/><text x="888" y="126" fill="#9aa3b5" font-size="11.5">22 + 6 项</text><text x="20" y="166" fill="#c9d2e0" font-size="12.5" font-weight="700">T-xx 用例验收</text><rect x="150" y="150" width="546" height="22" rx="6" fill="#ffb454" fill-opacity=".22" stroke="#ffb454" stroke-opacity=".55"/><rect x="150" y="150" width="546" height="22" rx="6" fill="url(#gt-t)"/><text x="706" y="166" fill="#9aa3b5" font-size="11.5">21 项</text><text x="20" y="206" fill="#c9d2e0" font-size="12.5" font-weight="700">G-xx 自动化闸门</text><rect x="150" y="190" width="546" height="22" rx="6" fill="#ff6b81" fill-opacity=".22" stroke="#ff6b81" stroke-opacity=".55"/><rect x="150" y="190" width="546" height="22" rx="6" fill="url(#gt-g)"/><text x="706" y="206" fill="#9aa3b5" font-size="11.5">21 道</text><defs>
+<linearGradient id="gt-d" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3ee6d6" stop-opacity=".55"/><stop offset="1" stop-color="#3ee6d6" stop-opacity=".15"/></linearGradient>
+<linearGradient id="gt-r" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#a78bff" stop-opacity=".55"/><stop offset="1" stop-color="#a78bff" stop-opacity=".15"/></linearGradient>
+<linearGradient id="gt-m" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5b9dff" stop-opacity=".55"/><stop offset="1" stop-color="#5b9dff" stop-opacity=".15"/></linearGradient>
+<linearGradient id="gt-t" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffb454" stop-opacity=".55"/><stop offset="1" stop-color="#ffb454" stop-opacity=".15"/></linearGradient>
+<linearGradient id="gt-g" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ff6b81" stop-opacity=".55"/><stop offset="1" stop-color="#ff6b81" stop-opacity=".15"/></linearGradient>
+</defs>
+<text x="20" y="232" fill="#5b6478" font-size="11.5">合计 110+ 项程序化检查点，另有编码层 10 项自检闸门与规格红线（≥10 条）—— 质量在每一层准入，而非最后一道关</text>
+</g></svg>
+<table><thead><tr><th>族</th><th>所属层</th><th>规模</th><th>把关焦点</th></tr></thead><tbody>
+<tr><td><b>D-xx</b></td><td>设计层（prd-toolkit）</td><td>19 项</td><td>详细设计文档结构 / 编号 / 口径 / 追溯</td></tr>
+<tr><td><b>R-xx</b></td><td>设计层（rv-toolkit）</td><td>27 项（含增强子项）</td><td>评审结论 / 引用溯源 / 版本快照 / 闭环率</td></tr>
+<tr><td><b>M-xx</b></td><td>规格层（spec-toolkit）</td><td>22 项 + L-xx 6 项</td><td>规格书与源码一致 / 三文档联动 / 契约对拍</td></tr>
+<tr><td><b>T-xx</b></td><td>测试层（tc-toolkit）</td><td>21 项</td><td>用例可执行性 / 数据口径 / 追溯链</td></tr>
+<tr><td><b>G-xx</b></td><td>测试层（E2E-ATW）</td><td>21 道</td><td>假绿攻防 / 证据时效 / 防篡改签章</td></tr>
+</tbody></table>
+</section>
+
+<section id="s8" class="reveal">
+<h2 class="sec-title">09 · 数据与知识底座</h2>
+<p class="sec-sub">两大横切底座向上支撑全部工具：数据「看同一本账」，业务「说同一套话」。</p>
+<svg viewBox="0 0 1160 210" style="width:100%;max-width:1160px;display:block;margin:14px 0" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="bs-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#5b6478"/></marker></defs>
+<g font-family="inherit">
+<rect x="20" y="24" width="540" height="150" rx="14" fill="#5b9dff" fill-opacity=".07" stroke="#5b9dff" stroke-opacity=".5"/>
+<text x="290" y="52" text-anchor="middle" fill="#5b9dff" font-size="14" font-weight="800">共享只读数据通道</text>
+<text x="290" y="76" text-anchor="middle" fill="#c9d2e0" font-size="12">连接级只读 · 表→库自动定位 · 全量审计</text>
+<text x="290" y="98" text-anchor="middle" fill="#9aa3b5" font-size="11.5">单测自检 / 缺陷定位 / 用例核验 / 财务核对 四处复用</text>
+<text x="290" y="124" text-anchor="middle" fill="#5b6478" font-size="11">数据访问规则只维护一份 · 安全策略升级一次全体系受益</text>
+<rect x="600" y="24" width="540" height="150" rx="14" fill="#a78bff" fill-opacity=".07" stroke="#a78bff" stroke-opacity=".5"/>
+<text x="870" y="52" text-anchor="middle" fill="#a78bff" font-size="14" font-weight="800">双知识库（业务事实源）</text>
+<text x="870" y="76" text-anchor="middle" fill="#c9d2e0" font-size="12">业务实现 PRD 库（9 端 12 业务域）· BI 商业智能库</text>
+<text x="870" y="98" text-anchor="middle" fill="#9aa3b5" font-size="11.5">七步法生命周期 · 置信衰减 · 休眠与淘汰</text>
+<text x="870" y="124" text-anchor="middle" fill="#5b6478" font-size="11">AI 写业务内容前的强制核验基准（kb_root）</text>
+<line x1="560" y1="99" x2="596" y2="99" stroke="#5b6478" stroke-width="1.4" marker-end="url(#bs-ar)"/>
+<text x="580" y="150" text-anchor="middle" fill="#5b6478" font-size="10.5">口径互通</text>
+<text x="580" y="196" text-anchor="middle" fill="#5b6478" font-size="11.5">两大底座向上支撑全部工具：数据「看同一本账」，业务「说同一套话」</text>
+</g></svg>
+</section>
+
+<section id="s9" class="reveal">
+<h2 class="sec-title">10 · 需求全生命周期</h2>
+<p class="sec-sub">以一个需求单号为线索，观察资产如何逐层流转、层层验收、最终回流为体系能力。</p>
+<svg viewBox="0 0 1160 400" style="width:100%;max-width:1160px;display:block;margin:16px 0" xmlns="http://www.w3.org/2000/svg"><g font-family="inherit"><line x1="60" y1="30" x2="60" y2="370" stroke="#2a3346" stroke-width="2"/><line x1="60" y1="30" x2="60" y2="370" stroke="#3ee6d6" stroke-width="2" stroke-dasharray="10 14" opacity=".55"><animate attributeName="stroke-dashoffset" from="48" to="0" dur="1.6s" repeatCount="indefinite"/></line><circle cx="60" cy="44" r="8" fill="#0b0f16" stroke="#3ee6d6" stroke-width="2.4"><animate attributeName="r" values="8;10.5;8" dur="2.8s" begin="0.0s" repeatCount="indefinite"/></circle><circle cx="60" cy="44" r="3" fill="#3ee6d6"/><rect x="88" y="25" width="1040" height="38" rx="10" fill="#161b27" stroke="#2a3346"/><rect x="88" y="25" width="4" height="38" rx="2" fill="#3ee6d6"/><text x="110" y="68" fill="#e8ecf4" font-size="13.5" font-weight="800">1 · prd-toolkit</text><text x="560" y="68" fill="#3ee6d6" font-size="12">双文档产出 · D-xx 19 项</text><circle cx="60" cy="92" r="8" fill="#0b0f16" stroke="#a78bff" stroke-width="2.4"><animate attributeName="r" values="8;10.5;8" dur="2.8s" begin="0.4s" repeatCount="indefinite"/></circle><circle cx="60" cy="92" r="3" fill="#a78bff"/><rect x="88" y="73" width="1040" height="38" rx="10" fill="#161b27" stroke="#2a3346"/><rect x="88" y="73" width="4" height="38" rx="2" fill="#a78bff"/><text x="110" y="116" fill="#e8ecf4" font-size="13.5" font-weight="800">2 · rv-toolkit</text><text x="560" y="116" fill="#a78bff" font-size="12">快照绑定 · R-xx 27 项</text><circle cx="60" cy="140" r="8" fill="#0b0f16" stroke="#5b9dff" stroke-width="2.4"><animate attributeName="r" values="8;10.5;8" dur="2.8s" begin="0.8s" repeatCount="indefinite"/></circle><circle cx="60" cy="140" r="3" fill="#5b9dff"/><rect x="88" y="121" width="1040" height="38" rx="10" fill="#161b27" stroke="#2a3346"/><rect x="88" y="121" width="4" height="38" rx="2" fill="#5b9dff"/><text x="110" y="164" fill="#e8ecf4" font-size="13.5" font-weight="800">3 · spec 编写 + 验证</text><text x="560" y="164" fill="#5b9dff" font-size="12">双端规格书 · M-xx 22 项</text><circle cx="60" cy="188" r="8" fill="#0b0f16" stroke="#3ee6d6" stroke-width="2.4"><animate attributeName="r" values="8;10.5;8" dur="2.8s" begin="1.2s" repeatCount="indefinite"/></circle><circle cx="60" cy="188" r="3" fill="#3ee6d6"/><rect x="88" y="169" width="1040" height="38" rx="10" fill="#161b27" stroke="#2a3346"/><rect x="88" y="169" width="4" height="38" rx="2" fill="#3ee6d6"/><text x="110" y="212" fill="#e8ecf4" font-size="13.5" font-weight="800">4 · xx-spec-coding</text><text x="560" y="212" fill="#3ee6d6" font-size="12">范围圈定 · 三闸门</text><circle cx="60" cy="236" r="8" fill="#0b0f16" stroke="#3ee6d6" stroke-width="2.4"><animate attributeName="r" values="8;10.5;8" dur="2.8s" begin="1.6s" repeatCount="indefinite"/></circle><circle cx="60" cy="236" r="3" fill="#3ee6d6"/><rect x="88" y="217" width="1040" height="38" rx="10" fill="#161b27" stroke="#2a3346"/><rect x="88" y="217" width="4" height="38" rx="2" fill="#3ee6d6"/><text x="110" y="260" fill="#e8ecf4" font-size="13.5" font-weight="800">5 · unit-test-selfcheck</text><text x="560" y="260" fill="#3ee6d6" font-size="12">先执行后落笔 · 10 项</text><circle cx="60" cy="284" r="8" fill="#0b0f16" stroke="#ffb454" stroke-width="2.4"><animate attributeName="r" values="8;10.5;8" dur="2.8s" begin="2.0s" repeatCount="indefinite"/></circle><circle cx="60" cy="284" r="3" fill="#ffb454"/><rect x="88" y="265" width="1040" height="38" rx="10" fill="#161b27" stroke="#2a3346"/><rect x="88" y="265" width="4" height="38" rx="2" fill="#ffb454"/><text x="110" y="308" fill="#e8ecf4" font-size="13.5" font-weight="800">6 · tc-toolkit + E2E-ATW</text><text x="560" y="308" fill="#ffb454" font-size="12">双轨用例 · T/G 42 项</text><circle cx="60" cy="332" r="8" fill="#0b0f16" stroke="#ff6b81" stroke-width="2.4"><animate attributeName="r" values="8;10.5;8" dur="2.8s" begin="2.4s" repeatCount="indefinite"/></circle><circle cx="60" cy="332" r="3" fill="#ff6b81"/><rect x="88" y="313" width="1040" height="38" rx="10" fill="#161b27" stroke="#2a3346"/><rect x="88" y="313" width="4" height="38" rx="2" fill="#ff6b81"/><text x="110" y="356" fill="#e8ecf4" font-size="13.5" font-weight="800">7 · 缺陷与知识回流</text><text x="560" y="356" fill="#ff6b81" font-size="12">根因定位 · 反哺回归</text><text x="60" y="392" text-anchor="middle" fill="#5b6478" font-size="10.5">流转</text></g></svg>
+</section>
+
+<section id="s10" class="reveal">
+<h2 class="sec-title">11 · 工具优化迭代总览</h2>
+<p class="sec-sub">各工具的近期加强与中期方向一览；完整的三阶段规划见各工具页「优化迭代与能力加强规划」章节，体系级路线见「联动与拓展」。</p>
+<table><thead><tr><th>工具</th><th>近期加强</th><th>中期方向</th></tr></thead><tbody><tr><td><b><a href="tools/prd-toolkit.html" style="color:var(--cyan)">📋 prd-toolkit · 详细设计生产</a></b></td><td>近期：需求条目自动提取与覆盖矩阵可视化、知识库冲突热区提示</td><td>中期：承接 PingCode 需求：自动受理、歧义识别、澄清问题清单生成、竞品与财务知…</td></tr><tr><td><b><a href="tools/rv-toolkit.html" style="color:var(--cyan)">🔍 rv-toolkit · 详细设计评审</a></b></td><td>近期：评审意见自动分类与严重度建议、评审报告一键飞书通报</td><td>中期：评审模型铺展：需求/代码/发布评审复用 R-xx 范式、评审结论与 PingCo…</td></tr><tr><td><b><a href="tools/spec-toolkit.html" style="color:var(--cyan)">📜 spec-toolkit · 规格验证基座</a></b></td><td>近期：审计声明类型扩展（SQL/配置/消息）、契约对拍可视化报告</td><td>中期：契约对拍接入 CI 阻断、规格变更影响面自动分析</td></tr><tr><td><b><a href="tools/xx-spec-writing.html" style="color:var(--cyan)">✍️ xx-spec-writing · 规格编写</a></b></td><td>近期：章节写作质量评分与改进建议、澄清结论自动回流规格书</td><td>中期：需求澄清 → 规格书章节自动映射、多项目模板谱系管理</td></tr><tr><td><b><a href="tools/xx-spec-coding.html" style="color:var(--cyan)">⚡ xx-spec-coding · 规格驱动编码</a></b></td><td>近期：AI Coding 强化：多文件协同编辑与上下文窗口优化、编码报告自动同步工作项</td><td>中期：学习存量代码风格的生成策略、编码同时自动生成/更新单测、与评审模型联动（代码评审…</td></tr><tr><td><b><a href="tools/unit-test-selfcheck.html" style="color:var(--cyan)">🧪 unit-test-selfcheck · 单测自检</a></b></td><td>近期：覆盖率门禁接入、失败用例自动归因初判</td><td>中期：CI 深度集成：自检报告作为合并门禁、变异测试评估用例有效性</td></tr><tr><td><b><a href="tools/tc-toolkit.html" style="color:var(--cyan)">🧩 tc-toolkit · 用例与数据生产</a></b></td><td>近期：边界值与组合用例自动扩展、用例与 E2E 双轨映射可视化</td><td>中期：执行结果回流优化生成策略、最小回归集推荐</td></tr><tr><td><b><a href="tools/db-query-assistant.html" style="color:var(--cyan)">🗄️ db-query-assistant · 只读数据通道</a></b></td><td>近期：常用查询模板库与口径沉淀、查询结果一键导出核对包</td><td>中期：数据血缘可视化、与知识库口径联动校验</td></tr><tr><td><b><a href="tools/defect-hunter.html" style="color:var(--cyan)">🏹 defect-hunter · 缺陷定位</a></b></td><td>近期：症状路由自学习扩充、定位过程时间线自动记录</td><td>中期：调用链自动还原与时序图生成、相似缺陷推荐</td></tr><tr><td><b><a href="tools/depr-check-toolkit.html" style="color:var(--cyan)">🧮 depr-check-toolkit · 折旧核对</a></b></td><td>近期：核对范围扩展：应收应付、费用域模板、异常趋势看板</td><td>中期：月结前自动巡检与飞书推送、财务知识库扩展（口径/政策/案例）支撑需求分析</td></tr><tr><td><b><a href="tools/xx-kb.html" style="color:var(--cyan)">📚 XX 知识库 · 业务事实源</a></b></td><td>近期：竞品知识库扩展：功能对标与差异化素材、财务知识扩展：准则/税法/实操口径</td><td>中期：知识问答式检索（受控 RAG）、知识引用热度分析驱动保鲜策略</td></tr></tbody></table>
+</section>
+
+<section id="s11" class="reveal">
+<h2 class="sec-title">12 · 演进方向</h2>
+<p class="sec-sub">体系级三步走与三条专项能力纵线，详见 <a href="linkage.html" style="color:var(--cyan)">联动与拓展</a>。</p>
+<div class="pillars">
+<div class="pillar" style="--pc:rgba(62,230,214,.13);--pb:#3ee6d6"><span class="tag">近期</span><h3>契约统一与平台接通</h3><p>共享契约固化为体系规范；PingCode 工作项双向同步；飞书通报自动推送。</p></div>
+<div class="pillar" style="--pc:rgba(91,157,255,.13);--pb:#5b9dff"><span class="tag">中期</span><h3>需求承接与评审铺展</h3><p>平台需求自动承接与澄清；工作项全生命周期管理；评审模型走向全团队。</p></div>
+<div class="pillar" style="--pc:rgba(167,139,255,.13);--pb:#a78bff"><span class="tag">远期</span><h3>产研一张网</h3><p>需求进、资产出的全自动流转；体系对外输出为 AI 研发质量中台。</p></div>
+<div class="pillar" style="--pc:rgba(255,180,84,.13);--pb:#ffb454"><span class="tag">新增 · 中期</span><h3>系统初始化实施工具化</h3><p>A~E 方案矩阵 + 四段式节点 + 实施五阶段沉淀为 init-toolkit：节点 scaffold、校验点族 I-xx、BLOCK 门禁机器化、初始化验收报告。</p></div>
+</div>
+<div class="rel-chips"><a href="linkage.html">BI 视图自动化搭建</a><a href="linkage.html">竞品与财务知识扩展</a><a href="linkage.html">AI Coding 强化</a><a href="linkage.html">系统初始化实施</a></div>
+</section>
+
+<section id="s12" class="reveal">
+<h2 class="sec-title">13 · FAQ</h2>
+<p class="sec-sub">点击展开——体系级最常见疑问。</p><div class="faq-list" style="--cc:#3ee6d6"><details class="fq"><summary><span class="fq-q">Q</span>为什么建设体系而非单个工具？</summary><div class="fq-a">单点工具解决单点问题，产研的质量风险集中在「层间漂移」——机器验收网把层间准入同样机器化。</div></details><details class="fq"><summary><span class="fq-q">Q</span>AI 在体系中承担什么角色？</summary><div class="fq-a">仅承担语义工作：撰写、阐释、在证据之上研判；确定性工作全部由机器承担。</div></details><details class="fq"><summary><span class="fq-q">Q</span>检查点会不会误报？</summary><div class="fq-a">豁免区间、证据分级、阈值真实数据校准，三重机制控制误报。</div></details><details class="fq"><summary><span class="fq-q">Q</span>体系如何持续成长？</summary><div class="fq-a">缺陷案例、业务口径、检查点阈值持续回流进化——详见「联动与拓展」。</div></details><details class="fq"><summary><span class="fq-q">Q</span>与通用 AI 编码工具的差异？</summary><div class="fq-a">通用工具优化「生成」，本体系约束「验收」——验收必须铁面无私。</div></details></div>
+</section>
+</main>
+</div>
+<button id="navToggle">☰</button><button id="topBtn">↑</button>
+<footer class="site">XX AI 工具体系 · 提示词是软约束，工具链是硬约束 · 机器验收 · 业务结论保留人工复核</footer>
+<script src="assets/site.js"></script>
+</body></html>
